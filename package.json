@@ -1,0 +1,16 @@
+{
+  "name": "SLAcer.js",
+  "version": "0.0.1",
+  "description": "3D Slicer for the browser",
+  "main": "index.js",
+  "repository": "git@github.com:Microtome/SLAcer.js.git",
+  "author": "Sébastien Mischler (https://github.com/lautr3k)",
+  "contributors": [
+    "Daniel Joyce <daniel.a.joyce@gmail.com> (https://github.com/DanielJoyce)"
+  ],
+  "license": "MIT",
+  "private": false,
+  "devDependencies": {
+    "eslint": "^4.14.0"
+  }
+}
