@@ -1,7 +1,7 @@
 /* global THREE, _ */
 
 // namespace
-let SLAcer = SLAcer || {};
+var SLAcer = SLAcer || {};
 
 (function() {
 
