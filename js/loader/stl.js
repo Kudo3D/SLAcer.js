@@ -1,7 +1,7 @@
 // namespace
 var MeshesJS = MeshesJS || {};
 
-;(function() {
+(function() {
 
     // Constructor
     function STLLoader(dropTarget) {
@@ -13,12 +13,12 @@ var MeshesJS = MeshesJS || {};
     STLLoader.prototype.onDragLeave = function(e) {
         e.stopPropagation();
         e.preventDefault();
-    }
+    };
 
     STLLoader.prototype.onDrop = function(e) {
         this.onDragLeave(e);
         this.loadFile((e.target.files || e.dataTransfer.files)[0]);
-    }
+    };
 
     STLLoader.prototype.addDropListener = function(dropTarget) {
         var dropTarget = dropTarget || this.dropTarget;
@@ -133,7 +133,7 @@ var MeshesJS = MeshesJS || {};
     };
 
     STLLoader.prototype.loadBinaryData = function(view, faces) {
-        if (! view instanceof DataView) {
+        if (!( view instanceof DataView)) {
             var view = new DataView(view);
         }
 

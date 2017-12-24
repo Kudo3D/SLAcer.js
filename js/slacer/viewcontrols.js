@@ -1,7 +1,7 @@
 // namespace
 var SLAcer = SLAcer || {};
 
-;(function() {
+(function() {
 
     // global settings
     var globalSettings = {
@@ -25,7 +25,7 @@ var SLAcer = SLAcer || {};
         this.focusPoint  = new THREE.Object3D();
 
         this.update();
-    };
+    }
 
     // methods
     ViewControls.prototype.update = function() {

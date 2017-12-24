@@ -1,7 +1,7 @@
 // namespace
 var SLAcer = SLAcer || {};
 
-;(function() {
+(function() {
 
     // global settings
     var globalSettings = {

@@ -1,7 +1,7 @@
 // namespace
 var SLAcer = SLAcer || {};
 
-;(function() {
+(function() {
 
     // global settings
     var globalSettings = {
@@ -98,7 +98,7 @@ var SLAcer = SLAcer || {};
         }
 
         return inside;
-    };
+    }
 
     function makeNodes(polygons) {
         // single polygon...
@@ -384,7 +384,7 @@ var SLAcer = SLAcer || {};
         }
 
         // remove empty shapes...
-        shapes = shapes.filter(function(n){ return n != undefined });
+        shapes = shapes.filter(function(n){ return n != undefined; });
 
         return {
             time    : Date.now() - time,
