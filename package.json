@@ -11,6 +11,7 @@
   "license": "MIT",
   "private": false,
   "devDependencies": {
-    "eslint": "^4.14.0"
+    "eslint": "^4.14.0",
+    "lite-server": "^2.3.0"
   }
 }
