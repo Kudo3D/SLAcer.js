@@ -1,12 +1,14 @@
+/* global SLAcer, THREE, MeshesJS, JSZip, saveAs, _,  $ */
+
 // -----------------------------------------------------------------------------
-// Variables
+// variables
 // -----------------------------------------------------------------------------
 //window.localStorage.clear();
-var settings = new SLAcer.Settings({
+let settings = new SLAcer.Settings({
     file: {
         panel: {
             collapsed: false,
-            position : 0
+            position: 0
         }
     },
     slicer: {
@@ -14,7 +16,7 @@ var settings = new SLAcer.Settings({
             height: 100 // μm
         },
         light: {
-            on : 1000,
+            on: 1000,
             off: 500
         },
         zip: true,
@@ -24,59 +26,59 @@ var settings = new SLAcer.Settings({
         speedDelay: 10, // ms
         panel: {
             collapsed: false,
-            position : 1
+            position: 1
         },
         lifting: {
-            speed : 50, // mm/min
+            speed: 50, // mm/min
             height: 3,  // mm
         }
     },
     mesh: {
         panel: {
             collapsed: false,
-            position : 2
+            position: 2
         }
     },
     transform: {
         panel: {
             collapsed: false,
-            position : 3
+            position: 3
         },
         mirror: false
     },
     buildVolume: {
-        size     : { x: 100,  y: 100,  z: 100 }, // mm
-        unit     : 'mm',                         // mm or in
-        color    : 0xcccccc,
-        opacity  : 0.1,
-        panel    : {
+        size: { x: 100, y: 100, z: 100 }, // mm
+        unit: 'mm',                         // mm or in
+        color: 0xcccccc,
+        opacity: 0.1,
+        panel: {
             collapsed: false,
-            position : 4
+            position: 4
         }
     },
     resin: {
-        density  : 1.1, // g/cm3
-        price    : 50,   // $
-        panel    : {
+        density: 1.1, // g/cm3
+        price: 50,   // $
+        panel: {
             collapsed: false,
-            position : 5
+            position: 5
         }
     },
     screen: {
-        width    : window.screen.width,
-        height   : window.screen.height,
-        diagonal : { size: 22, unit: 'in' },
-        panel    : {
+        width: window.screen.width,
+        height: window.screen.height,
+        diagonal: { size: 22, unit: 'in' },
+        panel: {
             collapsed: false,
-            position : 6
+            position: 6
         }
     },
     colors: {
-        mesh : '#eb0984',
+        mesh: '#eb0984',
         slice: '#88ee11',
         panel: {
             collapsed: false,
-            position : 7
+            position: 7
         }
     },
     viewer3d: {
@@ -88,18 +90,19 @@ var settings = new SLAcer.Settings({
 // Error handler
 // -----------------------------------------------------------------------------
 function errorHandler(error) {
+    // eslint-disable-next-line no-console 
     console.error(error);
 }
 
 // -----------------------------------------------------------------------------
 // Slicer
 // -----------------------------------------------------------------------------
-var slicer = new SLAcer.Slicer();
-var shapes, slices;
+let slicer = new SLAcer.Slicer();
+let shapes, slices;
 
 function removeShapes() {
     if (shapes && shapes.length) {
-        for (var i = 0, il = shapes.length; i < il; i++) {
+        for (let i = 0, il = shapes.length; i < il; i++) {
             viewer3d.removeObject(shapes[i]);
         }
     }
@@ -107,7 +110,7 @@ function removeShapes() {
 
 function removeSlices() {
     if (slices && slices.length) {
-        for (var i = 0, il = slices.length; i < il; i++) {
+        for (let i = 0, il = slices.length; i < il; i++) {
             viewer2d.removeObject(slices[i]);
         }
     }
@@ -143,10 +146,10 @@ function getSlice(layerNumber) {
 
     // get position
     layerHeight = settings.get('slicer.layers.height') / 1000;
-    zPosition   = layerNumber * layerHeight;
+    zPosition = layerNumber * layerHeight;
 
     // get faces
-    var faces = slicer.getFaces(zPosition);
+    let faces = slicer.getFaces(zPosition);
 
     //console.log('layer number:', layerNumber);
     //console.log('z position  :', zPosition);
@@ -157,11 +160,11 @@ function getSlice(layerNumber) {
 
     // slices
     slices = [];
-    var slice, shape;
-    var sliceColor = hexToDec(settings.get('colors.slice'));
+    let slice, shape;
+    let sliceColor = hexToDec(settings.get('colors.slice'));
 
     // add new shapes
-    for (var i = 0, il = shapes.length; i < il; i++) {
+    for (let i = 0, il = shapes.length; i < il; i++) {
         shape = shapes[i];
         slice = shape.clone();
 
@@ -180,61 +183,63 @@ function getSlice(layerNumber) {
     viewer3d.render();
 
     // render 2D view
-    viewer2d.screenshot(function(dataURL) {
+    viewer2d.screenshot(function (dataURL) {
         sliceImage(dataURL);
 
         if (PNGExport) {
-            var fileName = layerNumber + '.png';
-            var imgData  = dataURL.substr(dataURL.indexOf(',') + 1);
+            let fileName = layerNumber + '.png';
+            let imgData = dataURL.substr(dataURL.indexOf(',') + 1);
             zipFolder.file(fileName, imgData, { base64: true });
         }
     });
 
+    function SVGPath(actions, dir, xOffset, yOffset) {
+        let path = [];
+        let area = 0;
+        let a, b, c, x, y;
+
+        if (dir != 'ccw') {
+            dir = 'cw';
+        }
+
+        actions.push({ action: 'lineTo', args: actions[0].args });
+
+        for (let i = 0, il = actions.length; i < il; i++) {
+            a = actions[i];
+
+            if (i > 0) {
+                b = actions[i - 1];
+                area += a.args[0] * b.args[1];
+                area -= b.args[0] * a.args[1];
+            }
+
+            c = a.action == 'moveTo' ? 'M' : 'L';
+            x = (a.args[0] + xOffset);
+            y = (a.args[1] + yOffset);
+
+            path.push(c + x + ' ' + y);
+        }
+
+        if (dir == 'cw' && area < 0 || dir == 'ccw' && area > 0) {
+            path = path.reverse();
+            path[0] = path[0].replace(/^L/, 'M');
+            path[actions.length - 1] = path[actions.length - 1].replace(/^M/, 'L');
+        }
+
+        return path.join(' ') + ' Z ';
+    }
+
     // SVG export
     if (SVGExport) {
         // offset for positive coords
-        var xOffset = Math.abs(slicer.mesh.geometry.boundingBox.min.x);
-        var yOffset = Math.abs(slicer.mesh.geometry.boundingBox.min.y);
+        let xOffset = Math.abs(slicer.mesh.geometry.boundingBox.min.x);
+        let yOffset = Math.abs(slicer.mesh.geometry.boundingBox.min.y);
 
-        function SVGPath(actions, dir) {
-            var path = [];
-            var area = 0;
-            var a, b, c, x, y;
 
-            if (dir != 'ccw') {
-                dir = 'cw';
-            }
-
-            actions.push({ action: 'lineTo', args: actions[0].args });
-
-            for (var i = 0, il = actions.length; i < il; i++) {
-                a = actions[i];
-
-                if (i > 0) {
-                    b = actions[i - 1];
-                    area += a.args[0] * b.args[1];
-                    area -= b.args[0] * a.args[1];
-                }
-
-                c = a.action == 'moveTo' ? 'M' : 'L';
-                x = (a.args[0] + xOffset);
-                y = (a.args[1] + yOffset);
-
-                path.push(c + x + ' ' + y);
-            }
-
-            if (dir == 'cw' && area < 0 || dir == 'ccw' && area > 0) {
-                path = path.reverse();
-                path[0] = path[0].replace(/^L/, 'M');
-                path[actions.length - 1] = path[actions.length - 1].replace(/^M/, 'L');
-            }
-
-            return path.join(' ') + ' Z ';
-        }
 
         // svg start
-        var size = slicer.mesh.getSize();
-        var svg = '<svg version="1.1" width="' + size.x + '" height="' + size.y + '" baseProfile="full" xmlns="http://www.w3.org/2000/svg">\n';
+        let size = slicer.mesh.getSize();
+        let svg = '<svg version="1.1" width="' + size.x + '" height="' + size.y + '" baseProfile="full" xmlns="http://www.w3.org/2000/svg">\n';
 
         // svg background
         svg += '<rect x="0" y="0" width="100%" height="100%" style="fill:black; stroke:none"/>\n';
@@ -243,19 +248,19 @@ function getSlice(layerNumber) {
         svg += '<g transform="translate(0, ' + size.y + ') scale(1, -1)">\n';
 
         // draw main paths
-        var actions;
-        for (var i = 0, il = faces.shapes.length; i < il; i++) {
+        let actions;
+        for (let i = 0, il = faces.shapes.length; i < il; i++) {
             actions = faces.shapes[i].actions;
 
             // path start
             svg += '<path d="';
 
             // main paths
-            svg += SVGPath(actions, 'cw');
+            svg += SVGPath(actions, 'cw', xOffset, yOffset);
 
             // holes paths
-            var holes = faces.shapes[i].holes;
-            for (var j = 0, jl = holes.length; j < jl; j++) {
+            let holes = faces.shapes[i].holes;
+            for (let j = 0, jl = holes.length; j < jl; j++) {
                 svg += SVGPath(holes[j].actions, 'ccw');
             }
 
@@ -276,14 +281,14 @@ function getSlice(layerNumber) {
 // UI
 // -----------------------------------------------------------------------------
 // Main container
-var $main = $('#main');
+let $main = $('#main');
 
 // Viewer 3D
-var $viewer3d = $('#viewer3d');
-var viewer3d  = new SLAcer.Viewer3D({
-    color      : settings.get('viewer3d.color'),
+let $viewer3d = $('#viewer3d');
+let viewer3d = new SLAcer.Viewer3D({
+    color: settings.get('viewer3d.color'),
     buildVolume: settings.get('buildVolume'),
-    target     : $viewer3d[0]
+    target: $viewer3d[0]
 });
 
 // Triangulation algorithm
@@ -293,33 +298,33 @@ THREE.Triangulation.setLibrary('earcut');
 //THREE.Triangulation.setLibrary('poly2tri');
 
 // Viewer 2D
-var viewer2dWin   = null;
-var $openViewer2D = $('#open-viewer-2d');
+let viewer2dWin = null;
+let $openViewer2D = $('#open-viewer-2d');
 
-var viewer2d = new SLAcer.Viewer2D({
-    target     : null, // off-screen
-    color      : 0x000000,
-    buildPlate : {
-        size   : settings.get('buildVolume.size'),
-        unit   : settings.get('buildVolume.unit'),
-        color  : 0x000000,
+let viewer2d = new SLAcer.Viewer2D({
+    target: null, // off-screen
+    color: 0x000000,
+    buildPlate: {
+        size: settings.get('buildVolume.size'),
+        unit: settings.get('buildVolume.unit'),
+        color: 0x000000,
         opacity: 0 // hide build plate
     },
     size: settings.get('screen')
 });
 
-$openViewer2D.click(function(e) {
+$openViewer2D.click(function () {
     if (viewer2dWin == null || viewer2dWin.closed) {
-        var screen  = settings.get('screen');
-        var size    = 'width=' + screen.width + ', height=' + screen.height;
-        var opts    = 'menubar=0, toolbar=0, location=0, directories=0, personalbar=0, status=0, resizable=1, dependent=0';
+        let screen = settings.get('screen');
+        let size = 'width=' + screen.width + ', height=' + screen.height;
+        let opts = 'menubar=0, toolbar=0, location=0, directories=0, personalbar=0, status=0, resizable=1, dependent=0';
 
         viewer2dWin = window.open('viewer2d.html', 'SLAcerViewer2D', size + ', ' + opts);
 
-        $(viewer2dWin).on('beforeunload', function(e) {
+        $(viewer2dWin).on('beforeunload', function () {
             viewer2dWin = null;
         })
-            .load(function(e) {
+            .load(function () {
                 getSlice($sliderInput.slider('getValue'));
             });
     }
@@ -331,18 +336,18 @@ $openViewer2D.click(function(e) {
 });
 
 // Slider
-var $sliderInput = $('#slider input');
+let $sliderInput = $('#slider input');
 
-$sliderInput.slider({ reversed : true }).on('change', function(e) {
+$sliderInput.slider({ reversed: true }).on('change', function (e) {
     getSlice(e.value.newValue);
 });
 
-var $sliderElement  = $('#slider .slider');
-var $sliderMaxValue = $('#slider .max');
+let $sliderElement = $('#slider .slider');
+let $sliderMaxValue = $('#slider .max');
 
 function updateSliderUI() {
-    var layersHeight = settings.get('slicer.layers.height') / 1000;
-    var layersNumber = Math.floor(slicer.mesh.getSize().z / layersHeight);
+    let layersHeight = settings.get('slicer.layers.height') / 1000;
+    let layersNumber = Math.floor(slicer.mesh.getSize().z / layersHeight);
 
     $sliderInput.slider('setAttribute', 'max', layersNumber);
     $sliderMaxValue.html(layersNumber);
@@ -350,41 +355,41 @@ function updateSliderUI() {
 }
 
 // Sidebar
-var $sidebar = $('#sidebar');
-var $panels  = $sidebar.find('.panel');
+let $sidebar = $('#sidebar');
+// let $panels = $sidebar.find('.panel');
 
 $sidebar.sortable({
-    axis       : 'y',
-    handle     : '.panel-heading',
-    cancel     : '.panel-toggle',
+    axis: 'y',
+    handle: '.panel-heading',
+    cancel: '.panel-toggle',
     placeholder: 'panel-placeholder', forcePlaceholderSize: true,
     // update panel position
-    stop: function(e, ui) {
-        $sidebar.find('.panel').each(function(i, element) {
+    stop: function () {
+        $sidebar.find('.panel').each(function (i, element) {
             settings.set(_.camelCase(element.id) + '.panel.position', i);
         });
     }
 });
 
 // Sort panels
-var panels = [];
-var panel;
+let panels = [];
+// let panel;
 
-_.forEach(settings.settings, function(item, namespace) {
+_.forEach(settings.settings, function (item, namespace) {
     if (item && item.panel) {
         panels[item.panel.position] = $('#' + _.kebabCase(namespace));
     }
 });
 
-for (var i in panels) {
+for (let i in panels) {
     $sidebar.append(panels[i]);
 }
 
 // Init panel
 function initPanel(name) {
-    var id    = _.kebabCase(name);
-    var name  = _.camelCase(name);
-    var $body = $('#' + id + '-body');
+    let id = _.kebabCase(name);
+    name = _.camelCase(name);
+    let $body = $('#' + id + '-body');
 
     $body.on('hidden.bs.collapse', function () {
         settings.set(name + '.panel.collapsed', true);
@@ -407,31 +412,31 @@ function parseUnit(value, unit) {
 }
 
 // File panel
-var $fileBody  = initPanel('file');
-var $fileInput = $fileBody.find('#file-input');
-var loadedFile = null;
+let $fileBody = initPanel('file');
+let $fileInput = $fileBody.find('#file-input');
+let loadedFile = null;
 
-$fileInput.on('change', function(e) {
+$fileInput.on('change', function (e) {
     resetTransformValues();
     loadedFile = e.target.files[0];
     loader.loadFile(loadedFile);
 });
 
 // Mesh panel
-var $meshBody     = initPanel('mesh');
-var $meshFaces    = $meshBody.find('#mesh-faces');
-var $meshVolume   = $meshBody.find('#mesh-volume');
-var $meshWeight   = $meshBody.find('#mesh-weight');
-var $meshCost     = $meshBody.find('#mesh-cost');
-var $meshSizeX    = $meshBody.find('#mesh-size-x');
-var $meshSizeY    = $meshBody.find('#mesh-size-y');
-var $meshSizeZ    = $meshBody.find('#mesh-size-z');
-var $meshSizeUnit = $meshBody.find('.mesh-size-unit');
+let $meshBody = initPanel('mesh');
+let $meshFaces = $meshBody.find('#mesh-faces');
+let $meshVolume = $meshBody.find('#mesh-volume');
+let $meshWeight = $meshBody.find('#mesh-weight');
+let $meshCost = $meshBody.find('#mesh-cost');
+let $meshSizeX = $meshBody.find('#mesh-size-x');
+let $meshSizeY = $meshBody.find('#mesh-size-y');
+let $meshSizeZ = $meshBody.find('#mesh-size-z');
+let $meshSizeUnit = $meshBody.find('.mesh-size-unit');
 
 function updateMeshInfoUI() {
-    var mesh = slicer.mesh;
-    var size = mesh.getSize();
-    var unit = settings.get('buildVolume.unit');
+    let mesh = slicer.mesh;
+    let size = mesh.getSize();
+    let unit = settings.get('buildVolume.unit');
 
     updateSliderUI();
 
@@ -447,9 +452,9 @@ function updateMeshInfoUI() {
     $meshSizeY.html(size.y.toFixed(2));
     $meshSizeZ.html(size.z.toFixed(2));
 
-    var volume = parseInt(mesh.getVolume() / 1000);                   // cm3/ml
-    var weight = (volume * settings.get('resin.density')).toFixed(2); // g
-    var cost   = volume * settings.get('resin.price') / 1000;
+    let volume = parseInt(mesh.getVolume() / 1000);                   // cm3/ml
+    let weight = (volume * settings.get('resin.density')).toFixed(2); // g
+    let cost = volume * settings.get('resin.price') / 1000;
 
     $meshFaces.html(mesh.geometry.faces.length);
     $meshVolume.html(volume);
@@ -458,30 +463,28 @@ function updateMeshInfoUI() {
 }
 
 // Slicer panel
-var $slicerBody        = initPanel('slicer');
-var $slicerLayerHeight = $slicerBody.find('#slicer-layers-height');
-var $slicerLayersValue = $slicerBody.find('#slicer-layers-value');
-var $slicerLayerValue  = $slicerBody.find('#slicer-layer-value');
-var $slicerLightOff    = $slicerBody.find('#slicer-light-off');
-var $slicerLightOn     = $slicerBody.find('#slicer-light-on');
+let $slicerBody = initPanel('slicer');
+let $slicerLayerHeight = $slicerBody.find('#slicer-layers-height');
+let $slicerLayersValue = $slicerBody.find('#slicer-layers-value');
+let $slicerLayerValue = $slicerBody.find('#slicer-layer-value');
+let $slicerLightOff = $slicerBody.find('#slicer-light-off');
+let $slicerLightOn = $slicerBody.find('#slicer-light-on');
 
-var $slicerLiftingSpeed  = $slicerBody.find('#slicer-lifting-speed');
-var $slicerLiftingHeight = $slicerBody.find('#slicer-lifting-height');
+let $slicerLiftingSpeed = $slicerBody.find('#slicer-lifting-speed');
+let $slicerLiftingHeight = $slicerBody.find('#slicer-lifting-height');
 
-var $slicerExportPNG = $slicerBody.find('#slicer-image-extension-png');
-var $slicerExportSVG = $slicerBody.find('#slicer-image-extension-svg');
+let $slicerExportPNG = $slicerBody.find('#slicer-image-extension-png');
+let $slicerExportSVG = $slicerBody.find('#slicer-image-extension-svg');
 
-var $slicerSpeedYes    = $slicerBody.find('#slicer-speed-yes');
-var $slicerSpeedNo     = $slicerBody.find('#slicer-speed-no');
-var $slicerSpeedDelay  = $slicerBody.find('#slicer-speed-delay');
-var $slicerMakeZipYes  = $slicerBody.find('#slicer-make-zip-yes');
-var $slicerMakeZipNo   = $slicerBody.find('#slicer-make-zip-no');
-var $sliceButton       = $sidebar.find('#slice-button');
-var $abortButton       = $sidebar.find('#abort-button');
-var $zipButton         = $sidebar.find('#zip-button');
+let $slicerSpeedYes = $slicerBody.find('#slicer-speed-yes');
+let $slicerSpeedDelay = $slicerBody.find('#slicer-speed-delay');
+let $slicerMakeZipYes = $slicerBody.find('#slicer-make-zip-yes');
+let $sliceButton = $sidebar.find('#slice-button');
+let $abortButton = $sidebar.find('#abort-button');
+let $zipButton = $sidebar.find('#zip-button');
 
 function updateSlicerUI() {
-    var slicer = settings.get('slicer');
+    let slicer = settings.get('slicer');
 
     $slicerSpeedDelay.val(slicer.speedDelay);
     $slicerLayerHeight.val(slicer.layers.height);
@@ -512,24 +515,24 @@ function updateSlicerSettings() {
     updateSliderUI();
 }
 
-var sliceInterval;
-var expectedSliceInterval;
-var currentSliceNumber;
-var slicesNumber;
-var zipFile;
-var zipFolder;
+let sliceInterval;
+let expectedSliceInterval;
+let currentSliceNumber;
+let slicesNumber;
+let zipFile;
+let zipFolder;
 
-var SVGExport;
-var PNGExport;
+let SVGExport;
+let PNGExport;
 
-var layerHeight;
-var zPosition;
+let layerHeight;
+let zPosition;
 
-var exposureTime;
-var liftingSpeed;
-var liftingHeight;
-var liftingTime;
-var estimatedTime;
+// let exposureTime;
+// let liftingSpeed;
+// let liftingHeight;
+// let liftingTime;
+// let estimatedTime;
 
 function slice() {
     currentSliceNumber++;
@@ -541,10 +544,10 @@ function slice() {
     getSlice(currentSliceNumber);
     $sliderInput.slider('setValue', currentSliceNumber);
 
-    var time = Date.now();
-    var diff = time - expectedSliceInterval;
+    let time = Date.now();
+    let diff = time - expectedSliceInterval;
 
-    !settings.get('slicer.speed') && viewer2dWin && setTimeout(function() {
+    !settings.get('slicer.speed') && viewer2dWin && setTimeout(function () {
         sliceImage('none');
     }, settings.get('slicer.light.on'));
 
@@ -562,7 +565,7 @@ function endSlicing() {
 }
 
 function startSlicing() {
-    var times = settings.get('slicer.light');
+    let times = settings.get('slicer.light');
 
     if (settings.get('slicer.speed')) {
         sliceInterval = parseInt(settings.get('slicer.speedDelay'));
@@ -572,30 +575,30 @@ function startSlicing() {
     }
 
     expectedSliceInterval = Date.now() + sliceInterval;
-    slicesNumber          = parseInt($slicerLayersValue.html());
-    currentSliceNumber    = 0;
+    slicesNumber = parseInt($slicerLayersValue.html());
+    currentSliceNumber = 0;
 
-    zipFile   = null;
+    zipFile = null;
     zipFolder = null;
     SVGExport = null;
     PNGExport = null;
 
     if (settings.get('slicer.zip')) {
-        zipFile   = new JSZip();
+        zipFile = new JSZip();
         zipFolder = zipFile.folder('slices');
         zipFile.file('README.txt', 'Generated by SLAcer.js\r\nhttp://lautr3k.github.io/SLAcer.js/\r\n');
         zipFile.file('slacer.json', JSON.stringify({
             imageExtension: settings.get('slicer.png') ? 'png' : 'svg',
             imageDirectory: 'slices',
-            screenWidth   : settings.get('screen.width'),
-            screenHeight  : settings.get('screen.height'),
-            screenSize    : settings.get('screen.diagonal.size'),
-            screenUnit    : settings.get('screen.diagonal.unit'),
-            layersNumber  : slicesNumber,
-            layersHeight  : settings.get('slicer.layers.height') / 1000,     // mm
-            exposureTime  : parseInt(settings.get('slicer.light.on')),       // ms
-            liftingSpeed  : parseInt(settings.get('slicer.lifting.speed')),  // mm/min
-            liftingHeight : parseInt(settings.get('slicer.lifting.height'))  // mm
+            screenWidth: settings.get('screen.width'),
+            screenHeight: settings.get('screen.height'),
+            screenSize: settings.get('screen.diagonal.size'),
+            screenUnit: settings.get('screen.diagonal.unit'),
+            layersNumber: slicesNumber,
+            layersHeight: settings.get('slicer.layers.height') / 1000,     // mm
+            exposureTime: parseInt(settings.get('slicer.light.on')),       // ms
+            liftingSpeed: parseInt(settings.get('slicer.lifting.speed')),  // mm/min
+            liftingHeight: parseInt(settings.get('slicer.lifting.height'))  // mm
         }, null, 2));
         SVGExport = settings.get('slicer.svg');
         PNGExport = settings.get('slicer.png');
@@ -604,17 +607,17 @@ function startSlicing() {
     slicesNumber && slice();
 }
 
-$zipButton.on('click', function(e) {
+$zipButton.on('click', function () {
     if (zipFile) {
-        var name = 'SLAcer';
+        let name = 'SLAcer';
         if (loadedFile && loadedFile.name) {
             name = loadedFile.name;
         }
-        saveAs(zipFile.generate({type: 'blob'}), name + '.zip');
+        saveAs(zipFile.generate({ type: 'blob' }), name + '.zip');
     }
 });
 
-$sliceButton.on('click', function(e) {
+$sliceButton.on('click', function () {
     $sidebar.find('input, button').prop('disabled', true);
     $('.panel-heading button').prop('disabled', false);
     $openViewer2D.prop('disabled', false);
@@ -625,7 +628,7 @@ $sliceButton.on('click', function(e) {
     startSlicing();
 });
 
-$abortButton.on('click', function(e) {
+$abortButton.on('click', function () {
     currentSliceNumber = slicesNumber + 1;
     endSlicing();
 });
@@ -637,13 +640,13 @@ $('#slicer input').on('input, change', updateSlicerSettings);
 updateSlicerUI();
 
 // Build volume panel
-var $buildVolumeBody = initPanel('buildVolume');
-var $buildVolumeX    = $buildVolumeBody.find('#build-volume-x');
-var $buildVolumeY    = $buildVolumeBody.find('#build-volume-y');
-var $buildVolumeZ    = $buildVolumeBody.find('#build-volume-z');
+let $buildVolumeBody = initPanel('buildVolume');
+let $buildVolumeX = $buildVolumeBody.find('#build-volume-x');
+let $buildVolumeY = $buildVolumeBody.find('#build-volume-y');
+let $buildVolumeZ = $buildVolumeBody.find('#build-volume-z');
 
 function updateBuildVolumeUI() {
-    var buildVolume = settings.get('buildVolume');
+    let buildVolume = settings.get('buildVolume');
 
     $buildVolumeX.val(buildVolume.size.x);
     $buildVolumeY.val(buildVolume.size.y);
@@ -653,7 +656,7 @@ function updateBuildVolumeUI() {
 }
 
 function updateBuildVolumeSizeStep() {
-    var step = (settings.get('buildVolume.unit') == 'in') ? 0.01 : 1;
+    let step = (settings.get('buildVolume.unit') == 'in') ? 0.01 : 1;
 
     $buildVolumeX.prop('step', step);
     $buildVolumeY.prop('step', step);
@@ -661,10 +664,10 @@ function updateBuildVolumeSizeStep() {
 }
 
 function updateBuildVolumeSettings() {
-    var unit = $('#build-volume input[type=radio]:checked').val();
+    let unit = $('#build-volume input[type=radio]:checked').val();
 
     if (unit != settings.get('buildVolume.unit')) {
-        var size = settings.get('buildVolume.size');
+        let size = settings.get('buildVolume.size');
 
         $buildVolumeX.val(parseUnit(size.x, unit));
         $buildVolumeY.val(parseUnit(size.y, unit));
@@ -684,7 +687,7 @@ function updateBuildVolumeSettings() {
     slicer.mesh && viewer3d.dropObject(slicer.mesh);
     viewer3d.render();
 
-    size && updateMeshInfoUI();
+    updateMeshInfoUI();
 
     updateBuildVolumeSizeStep();
     getSlice($sliderInput.slider('getValue'));
@@ -696,19 +699,19 @@ $('#build-volume input').on('input', updateBuildVolumeSettings);
 updateBuildVolumeUI();
 
 // Resin panel
-var $resinBody    = initPanel('resin');
-var $resinPrice   = $resinBody.find('#resin-price');
-var $resinDensity = $resinBody.find('#resin-density');
+let $resinBody = initPanel('resin');
+let $resinPrice = $resinBody.find('#resin-price');
+let $resinDensity = $resinBody.find('#resin-density');
 
 function updateResinUI() {
-    var resin = settings.get('resin');
+    let resin = settings.get('resin');
 
     $resinDensity.val(resin.density);
     $resinPrice.val(resin.price);
 }
 
 function updateResinSettings() {
-    settings.set('resin.price'  , $resinPrice.val());
+    settings.set('resin.price', $resinPrice.val());
     settings.set('resin.density', $resinDensity.val());
     updateMeshInfoUI();
 }
@@ -717,14 +720,14 @@ $('#resin input').on('input', updateResinSettings);
 updateResinUI();
 
 // Screen
-var $screenBody         = initPanel('screen');
-var $screenWidth        = $screenBody.find('#screen-width');
-var $screenHeight       = $screenBody.find('#screen-height');
-var $screenDiagonalSize = $screenBody.find('#screen-diagonal-size');
-var $screenDotPitch     = $screenBody.find('#screen-dot-pitch');
+let $screenBody = initPanel('screen');
+let $screenWidth = $screenBody.find('#screen-width');
+let $screenHeight = $screenBody.find('#screen-height');
+let $screenDiagonalSize = $screenBody.find('#screen-diagonal-size');
+let $screenDotPitch = $screenBody.find('#screen-dot-pitch');
 
 function updateScreenUI() {
-    var screen = settings.get('screen');
+    let screen = settings.get('screen');
 
     $screenWidth.val(screen.width);
     $screenHeight.val(screen.height);
@@ -735,7 +738,7 @@ function updateScreenUI() {
 }
 
 function updateScreenSettings() {
-    var unit = $('#screen input[type=radio]:checked').val();
+    let unit = $('#screen input[type=radio]:checked').val();
 
     if (unit != settings.get('screen.diagonal.unit')) {
         $screenDiagonalSize.val(
@@ -744,8 +747,8 @@ function updateScreenSettings() {
     }
 
     settings.set('screen', {
-        width   : $screenWidth.val(),
-        height  : $screenHeight.val(),
+        width: $screenWidth.val(),
+        height: $screenHeight.val(),
         diagonal: {
             size: $screenDiagonalSize.val(),
             unit: unit
@@ -764,12 +767,12 @@ $('#screen input').on('input', updateScreenSettings);
 updateScreenUI();
 
 // Colors
-var $colorsBody = initPanel('colors');
-var $meshColor  = $colorsBody.find('#mesh-color');
-var $sliceColor = $colorsBody.find('#slice-color');
+let $colorsBody = initPanel('colors');
+let $meshColor = $colorsBody.find('#mesh-color');
+let $sliceColor = $colorsBody.find('#slice-color');
 
 function updateColorsUI() {
-    var colors = settings.get('colors');
+    let colors = settings.get('colors');
 
     $meshColor.val(colors.mesh);
     $sliceColor.val(colors.slice);
@@ -779,22 +782,22 @@ updateColorsUI();
 $meshColor.colorpicker({ format: 'hex' });
 $sliceColor.colorpicker({ format: 'hex' });
 
-$meshColor.colorpicker().on('changeColor.colorpicker', function(e) {
+$meshColor.colorpicker().on('changeColor.colorpicker', function (e) {
     if (slicer.mesh && slicer.mesh.material) {
-        var hexString  = e.color.toHex();
-        var hexInteger = hexToDec(hexString);
+        let hexString = e.color.toHex();
+        let hexInteger = hexToDec(hexString);
         settings.set('colors.mesh', hexString);
         slicer.mesh.material.color.setHex(hexInteger);
         viewer3d.render();
     }
 });
 
-$sliceColor.colorpicker().on('changeColor.colorpicker', function(e) {
+$sliceColor.colorpicker().on('changeColor.colorpicker', function (e) {
     if (shapes && shapes.length) {
-        var hexString  = e.color.toHex();
-        var hexInteger = hexToDec(hexString);
+        let hexString = e.color.toHex();
+        let hexInteger = hexToDec(hexString);
         settings.set('colors.slice', hexString);
-        for (var i = 0, il = shapes.length; i < il; i++) {
+        for (let i = 0, il = shapes.length; i < il; i++) {
             shapes[i].material.color.setHex(hexInteger);
         }
         viewer3d.render();
@@ -802,29 +805,29 @@ $sliceColor.colorpicker().on('changeColor.colorpicker', function(e) {
 });
 
 // Alert
-var $alertPanel   = $('#alert');
-var $alertMessage = $alertPanel.find('.message');
+// let $alertPanel = $('#alert');
+// let $alertMessage = $alertPanel.find('.message');
 
 // Transform
-var $transformBody    = initPanel('transform');
-var $transformAction  = $transformBody.find('#transform-action');
-var $transformUniform = $transformBody.find('#transform-uniform');
-var $transformX       = $transformBody.find('#transform-x');
-var $transformY       = $transformBody.find('#transform-y');
-var $transformZ       = $transformBody.find('#transform-z');
-var $transformButtons = $transformBody.find('button');
+let $transformBody = initPanel('transform');
+let $transformAction = $transformBody.find('#transform-action');
+let $transformUniform = $transformBody.find('#transform-uniform');
+let $transformX = $transformBody.find('#transform-x');
+let $transformY = $transformBody.find('#transform-y');
+let $transformZ = $transformBody.find('#transform-z');
+let $transformButtons = $transformBody.find('button');
 
-var $transformMirrorYes = $transformBody.find('#transform-mirror-yes');
-var $transformMirrorNo  = $transformBody.find('#transform-mirror-no');
+let $transformMirrorYes = $transformBody.find('#transform-mirror-yes');
+let $transformMirrorNo = $transformBody.find('#transform-mirror-no');
 
-var transformAction, transformations;
+let transformAction, transformations;
 
 function resetTransformValues() {
     transformAction = 'scale';
     transformations = {
-        scale    : { x:1, y:1 , z:1 },
-        rotate   : { x:0, y:0 , z:0 },
-        translate: { x:0, y:0 , z:0 }
+        scale: { x: 1, y: 1, z: 1 },
+        rotate: { x: 0, y: 0, z: 0 },
+        translate: { x: 0, y: 0, z: 0 }
     };
     updateTransformAction();
 }
@@ -832,23 +835,23 @@ function resetTransformValues() {
 function updateTransformAction() {
     transformAction = $transformAction.val();
 
-    var axis = transformations[transformAction];
+    let axis = transformations[transformAction];
 
-    var min, max, step;
+    let min, max, step;
 
     if (transformAction == 'scale') {
-        min  = 0.01;
-        max  = 999;
+        min = 0.01;
+        max = 999;
         step = 0.01;
     }
     else if (transformAction == 'rotate') {
-        min  = 0;
-        max  = 360;
+        min = 0;
+        max = 360;
         step = 1;
     }
     else {
-        min  = -9999;
-        max  = 9999;
+        min = -9999;
+        max = 9999;
         step = 1;
     }
 
@@ -870,9 +873,9 @@ function updateTransformAction() {
 }
 
 function updateTransformValues() {
-    var current = transformations[transformAction];
-    var uniform = $('#transform-uniform input[type=radio]:checked').val() == 'yes';
-    var input   = {
+    let current = transformations[transformAction];
+    let uniform = $('#transform-uniform input[type=radio]:checked').val() == 'yes';
+    let input = {
         x: parseFloat($transformX.val()),
         y: parseFloat($transformY.val()),
         z: parseFloat($transformZ.val())
@@ -889,21 +892,21 @@ function updateTransformValues() {
     if (transformAction == 'scale') {
         if (uniform) {
             if (input.x != current.x) {
-                var ratio = current.x / input.x;
+                let ratio = current.x / input.x;
                 input.y = (current.y / ratio).toFixed(2);
                 input.z = (current.z / ratio).toFixed(2);
                 $transformY.val(input.y);
                 $transformZ.val(input.z);
             }
             else if (input.y != current.y) {
-                var ratio = current.y / input.y;
+                let ratio = current.y / input.y;
                 input.x = (current.x / ratio).toFixed(2);
                 input.z = (current.z / ratio).toFixed(2);
                 $transformX.val(input.x);
                 $transformZ.val(input.z);
             }
             else if (input.z != current.z) {
-                var ratio = current.z / input.z;
+                let ratio = current.z / input.z;
                 input.x = (current.x / ratio).toFixed(2);
                 input.y = (current.y / ratio).toFixed(2);
                 $transformX.val(input.x);
@@ -922,8 +925,8 @@ function updateTransformValues() {
         );
     }
     else if (transformAction == 'rotate') {
-        var deg     = Math.PI / 180;
-        var offsets = {
+        let deg = Math.PI / 180;
+        let offsets = {
             x: input.x - current.x,
             y: input.y - current.y,
             z: input.z - current.z
@@ -934,7 +937,7 @@ function updateTransformValues() {
         slicer.mesh.geometry.rotateZ(offsets.z * deg);
     }
     else {
-        var offsets = {
+        let offsets = {
             x: input.x - current.x,
             y: input.y - current.y
         };
@@ -949,19 +952,19 @@ function updateTransformValues() {
     if (transformAction != 'translate') {
         loadGeometry(slicer.mesh.geometry, false);
         // stay at current position
-        var current = transformations['translate'];
+        let current = transformations['translate'];
         slicer.mesh.geometry.translate(current.x, current.y, current.z);
     }
 
     getSlice($sliderInput.slider('getValue'));
 }
 
-$transformButtons.on('click', function(e) {
-    var $this   = $(this);
-    var axis    = $this.data('axis');
-    var action  = $this.data('action');
-    var value   = transformations[transformAction][axis];
-    var $target = $transformBody.find('#transform-' + axis);
+$transformButtons.on('click', function () {
+    let $this = $(this);
+    let axis = $this.data('axis');
+    let action = $this.data('action');
+    let value = transformations[transformAction][axis];
+    let $target = $transformBody.find('#transform-' + axis);
 
     $target.val(value + (action == '+' ? 1 : -1));
     updateTransformValues();
@@ -983,10 +986,10 @@ resetTransformValues();
 
 // UI resize
 function resizeUI() {
-    var width  = $main.width();
-    var height = $main.height();
+    let width = $main.width();
+    let height = $main.height();
     $sliderElement.height(height - 80);
-    viewer3d.setSize({ width : width, height: height });
+    viewer3d.setSize({ width: width, height: height });
     viewer3d.render();
 }
 
@@ -997,7 +1000,7 @@ resizeUI();
 // STL loader
 // -----------------------------------------------------------------------------
 // Loader instance
-var loader = new MeshesJS.STLLoader($main[0]); // drop target
+let loader = new MeshesJS.STLLoader($main[0]); // drop target
 
 // Load an geometry
 function loadGeometry(geometry, mirror) {
@@ -1028,7 +1031,7 @@ function loadGeometry(geometry, mirror) {
         // get first slice
         //getSlice(1);
     }
-    catch(e) {
+    catch (e) {
         errorHandler(e);
     }
 }
@@ -1046,7 +1049,7 @@ function ultraMegaDirtyFix() {
 }
 
 // On Geometry loaded
-loader.onGeometry = function(geometry) {
+loader.onGeometry = function (geometry) {
     resetTransformValues();
     loadGeometry(geometry, settings.get('transform.mirror'));
     ultraMegaDirtyFix();
@@ -1059,25 +1062,25 @@ loader.onError = errorHandler;
 // load example
 // -----------------------------------------------------------------------------
 // example STL file
-//var stl = 'stl/Octocat-v2.stl';
-var stl = 'stl/StressTest.stl';
-//var stl = 'stl/SLAcer.stl';
+//let stl = 'stl/Octocat-v2.stl';
+let stl = 'stl/StressTest.stl';
+//let stl = 'stl/SLAcer.stl';
 
 // File url
-// var url = 'http://' + window.location.hostname + window.location.pathname + stl;
-var url = window.location.href + stl;
+// let url = 'http://' + window.location.hostname + window.location.pathname + stl;
+let url = window.location.href + stl;
 
 // Create http request object
-var xmlhttp = new XMLHttpRequest();
+let xmlhttp = new XMLHttpRequest();
 
 // Get the file contents
 xmlhttp.open('GET', url);
 
-xmlhttp.onreadystatechange = function() {
+xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState == XMLHttpRequest.DONE) {
-        if(xmlhttp.status == 200){
+        if (xmlhttp.status == 200) {
             loader.loadString(xmlhttp.responseText);
-        }else{
+        } else {
             errorHandler('xmlhttp: ' + xmlhttp.statusText);
         }
     }

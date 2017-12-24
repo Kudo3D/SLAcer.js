@@ -1,10 +1,12 @@
+/* global THREE, _ */
+
 // namespace
-var SLAcer = SLAcer || {};
+let SLAcer = SLAcer || {};
 
 (function() {
 
     // global settings
-    var globalSettings = {
+    let globalSettings = {
         view    : 'default',
         target  : null,
         controls: null,
@@ -14,7 +16,7 @@ var SLAcer = SLAcer || {};
 
     // Constructor
     function ViewControls(settings) {
-        var settings = _.defaults(settings || {}, ViewControls.globalSettings);
+        settings = _.defaults(settings || {}, ViewControls.globalSettings);
 
         this.view        = null;
         this.defaultView = settings.view;
@@ -38,14 +40,13 @@ var SLAcer = SLAcer || {};
     };
 
     ViewControls.prototype.setFocusAtCenter = function() {
-        var size = this.target.geometry.boundingBox.size();
         this.setFocusAt({ x: 0, y: 0, z: 0 });
     };
 
     ViewControls.prototype.getVisibleDistance = function(width, height) {
-        var margin = this.margin * 2;
-        var size   = height + margin;
-        var aspect = width / height;
+        let margin = this.margin * 2;
+        let size   = height + margin;
+        let aspect = width / height;
 
         // landscape or portrait orientation
         if (this.camera.aspect < aspect) {
@@ -69,13 +70,13 @@ var SLAcer = SLAcer || {};
         this.controls.reset();
 
         // set new position
-        var x = 0;
-        var y = 0;
-        var z = 0;
-        var w, h;
+        let x = 0;
+        let y = 0;
+        let z = 0;
+        let w, h;
 
-        var size = this.target.geometry.boundingBox.size();
-        var view = view || this.defaultView;
+        let size = this.target.geometry.boundingBox.size();
+        view = view || this.defaultView;
 
         this.view = view;
 
@@ -111,7 +112,7 @@ var SLAcer = SLAcer || {};
         }
 
         // ensure the build volume is visible
-        var distance = this.getVisibleDistance(w, h);
+        let distance = this.getVisibleDistance(w, h);
 
         if (view == 'default' || view == 'front') {
             y = y - distance;

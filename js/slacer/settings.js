@@ -1,3 +1,5 @@
+/* global _ */
+
 // namespace
 var SLAcer = SLAcer || {};
 

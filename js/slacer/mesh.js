@@ -1,3 +1,5 @@
+/* global THREE */
+
 // namespace
 var SLAcer = SLAcer || {};
 

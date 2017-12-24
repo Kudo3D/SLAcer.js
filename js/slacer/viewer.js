@@ -1,10 +1,12 @@
+/* global THREE, _ */
+
 // namespace
-var SLAcer = SLAcer || {};
+let SLAcer = SLAcer || {};
 
 (function() {
 
     // global settings
-    var globalSettings = {
+    let globalSettings = {
         size: {
             width: 600,
             height: 400
@@ -24,7 +26,7 @@ var SLAcer = SLAcer || {};
     // Constructor
     function Viewer(settings) {
         // self alias
-        var self = this;
+        let self = this;
 
         // settings settings
         self.settings = _.defaultsDeep({}, settings || {}, Viewer.globalSettings);

@@ -1,10 +1,12 @@
+/* global THREE, _ */
+
 // namespace
-var SLAcer = SLAcer || {};
+let SLAcer = SLAcer || {};
 
 (function() {
 
     // global settings
-    var globalSettings = {
+    let globalSettings = {
         screen: {
             width   : 1680, // px
             height  : 1050, // px
@@ -40,8 +42,8 @@ var SLAcer = SLAcer || {};
     // -------------------------------------------------------------------------
 
     Viewer2D.prototype.updatePixelDensity = function() {
-        var diagonalPixels     = Math.sqrt(Math.pow(this.screen.width, 2) + Math.pow(this.screen.height, 2));
-        var pixelPerCentimeter = diagonalPixels / this.screen.diagonal.size * 10;
+        let diagonalPixels     = Math.sqrt(Math.pow(this.screen.width, 2) + Math.pow(this.screen.height, 2));
+        let pixelPerCentimeter = diagonalPixels / this.screen.diagonal.size * 10;
 
         if (this.screen.diagonal.unit == 'in') {
             pixelPerCentimeter = pixelPerCentimeter / 25.4;
@@ -60,24 +62,24 @@ var SLAcer = SLAcer || {};
     Viewer2D.prototype.setBuildPlate = function(settings) {
         this.buildPlate = _.defaultsDeep(settings, this.buildPlate);
 
-        var size    = this.buildPlate.size;
-        var unit    = this.buildPlate.unit;
-        var color   = this.buildPlate.color;
-        var opacity = this.buildPlate.opacity;
+        let size    = this.buildPlate.size;
+        let unit    = this.buildPlate.unit;
+        let color   = this.buildPlate.color;
+        let opacity = this.buildPlate.opacity;
 
         if (unit == 'in') { // -> mm
             size.x *= 25.4;
             size.y *= 25.4;
         }
 
-        var geometry = new THREE.PlaneGeometry(size.x, size.y, 1);
-        var material = new THREE.MeshBasicMaterial({
+        let geometry = new THREE.PlaneGeometry(size.x, size.y, 1);
+        let material = new THREE.MeshBasicMaterial({
             color: color,
             opacity: opacity,
             transparent: true
         });
 
-        var buildPlateObject = new THREE.Mesh(geometry, material);
+        let buildPlateObject = new THREE.Mesh(geometry, material);
 
         this.replaceObject(this.buildPlateObject, buildPlateObject);
         this.buildPlateObject = buildPlateObject;
@@ -92,7 +94,7 @@ var SLAcer = SLAcer || {};
     };
 
     Viewer2D.prototype.setView = function() {
-        var distance = this.screen.height / 2;
+        let distance = this.screen.height / 2;
         distance /= Math.tan(Math.PI * this.camera.fov / 360);
         distance *= this.dotPitch;
 

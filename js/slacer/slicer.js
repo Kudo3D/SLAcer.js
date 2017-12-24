@@ -1,10 +1,12 @@
+/* global THREE, _ */
+
 // namespace
-var SLAcer = SLAcer || {};
+let SLAcer = SLAcer || {};
 
 (function() {
 
     // global settings
-    var globalSettings = {
+    let globalSettings = {
         color: 0xffff00
     };
 
@@ -30,13 +32,13 @@ var SLAcer = SLAcer || {};
     }
 
     function linesToPolygons(lines) {
-        var polygons = [];
-        var polygon  = [];
+        let polygons = [];
+        let polygon  = [];
 
-        var firstLine, lastPoint, i, line;
+        let firstLine, lastPoint, i, line;
 
         function getNextPoint() {
-            var found = false;
+            let found = false;
             for (i = 0; i < lines.length; i++) {
                 line = lines[i];
                 if (isSamePoint(lastPoint, line.p1)) {
@@ -70,7 +72,7 @@ var SLAcer = SLAcer || {};
             polygon.push(firstLine.p1);
             polygon.push(firstLine.p2);
 
-            while (getNextPoint()) {}
+            while (getNextPoint());
 
             polygons.push(polygon);
             polygon = [];
@@ -84,9 +86,9 @@ var SLAcer = SLAcer || {};
         // https://github.com/substack/point-in-polygon/blob/master/index.js
         // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
 
-        var inside = false;
+        let inside = false;
 
-        var il, j, pi, pj, intersect;
+        let i, il, j, pi, pj;
 
         for (i = 0, il = polygon.length, j = il - 1; i < il; j = i++) {
             pi = polygon[i];
@@ -107,10 +109,10 @@ var SLAcer = SLAcer || {};
         }
 
         // nodes collection
-        var nodes = {};
+        let nodes = {};
 
         // variables
-        var i, il, point, y, yl;
+        let i, il, point, y, yl;
 
         // for each polygon extract parents and childs polygons
         for (i = 0, il = polygons.length; i < il; i++) {
@@ -151,14 +153,14 @@ var SLAcer = SLAcer || {};
 
     function polygonsToShapes(polygons) {
         // shapes collection
-        var shapes = [];
+        let shapes = [];
 
         // make the nodes collection
-        var nodes = makeNodes(polygons);
+        let nodes = makeNodes(polygons);
         //console.log('nodes:', nodes);
 
         // variables
-        var key, node, i, il, parentKey;
+        let key, node, i, il, parentKey;
 
         // make base collection
         for (key in nodes) {
@@ -215,10 +217,10 @@ var SLAcer = SLAcer || {};
         this.slice = mesh.clone();
 
         // bounding box
-        var box = mesh.geometry.boundingBox.clone();
+        let box = mesh.geometry.boundingBox.clone();
 
         // mesh size
-        var size = box.size();
+        let size = box.size();
 
         // z height
         this.zHeight = size.z;
@@ -226,8 +228,8 @@ var SLAcer = SLAcer || {};
 
         // min/max faces (z)
         this.facesMinMax = [];
-        var i, length, face, v1, v2, v3;
-        var geometry = this.slice.geometry;
+        let i, length, face, v1, v2, v3;
+        let geometry = this.slice.geometry;
         for (i = 0, length = geometry.faces.length; i < length; i++) {
             face = geometry.faces[i];
             v1 = geometry.vertices[face.a];
@@ -249,18 +251,18 @@ var SLAcer = SLAcer || {};
     };
 
     Slicer.prototype.getFaces = function(zPosition) {
-        var time = Date.now();
+        let time = Date.now();
 
         zPosition += this.zOffset;
 
-        var source = this.slice.geometry;
-        var geometry = new THREE.Geometry();
-        var plane  = new THREE.Plane(new THREE.Vector3(0, 0, 1), -zPosition);
+        let source = this.slice.geometry;
+        let geometry = new THREE.Geometry();
+        let plane  = new THREE.Plane(new THREE.Vector3(0, 0, 1), -zPosition);
 
-        var i, length, minMax, face, vertices, v1, v2, v3, index, normal;
+        let i, length, minMax, face, vertices, v1, v2, v3, index, normal;
 
-        var lines = [];
-        var line, top, bot;
+        let lines = [];
+        let top, bot;
 
         function addLine(p1, p2) {
             lines.push(new Line(p1, p2));
@@ -287,11 +289,11 @@ var SLAcer = SLAcer || {};
                 ));
 
                 // slice...
-                t1 = isSameValue(v1.z, zPosition);
-                t2 = isSameValue(v2.z, zPosition);
-                t3 = isSameValue(v3.z, zPosition);
+                let t1 = isSameValue(v1.z, zPosition);
+                let t2 = isSameValue(v2.z, zPosition);
+                let t3 = isSameValue(v3.z, zPosition);
 
-                touch = 0;
+                let touch = 0;
 
                 t1 && touch++;
                 t2 && touch++;
@@ -354,16 +356,16 @@ var SLAcer = SLAcer || {};
             }
         }
 
-        var polygons = linesToPolygons(lines);
-        var shapes   = polygonsToShapes(polygons);
+        let polygons = linesToPolygons(lines);
+        let shapes   = polygonsToShapes(polygons);
 
-        var meshes = [];
+        let meshes = [];
 
-        for (key in shapes) {
+        for (let key in shapes) {
             try {
-                var color = this.settings.color;
-                //var color = ((1<<24)*Math.random()|0);
-                var geo = new THREE.ShapeGeometry(shapes[key]);
+                let color = this.settings.color;
+                //let color = ((1<<24)*Math.random()|0);
+                let geo = new THREE.ShapeGeometry(shapes[key]);
 
                 if (!geo.faces.length || !geo.vertices.length) {
                     delete shapes[key];
@@ -378,8 +380,8 @@ var SLAcer = SLAcer || {};
                 ));
             }
             catch(e) {
-                console.error(e);
-                console.log(shapes[key]);
+                // eslint-disable-next-line no-console
+                console.error(e,shapes[key]);
             }
         }
 

@@ -1,3 +1,5 @@
+/* global $ */
+
 // Photonic3D Modifications and Features to SLAcer
 
 // Utils
@@ -6,18 +8,18 @@ function findPythagoreanC(a, b) {
 }
 
 function setPrinterCalibrationSettings(printer) {
-    var slicingProfile = printer.configuration.slicingProfile;
-    var monitorDriverConfig = printer.configuration.machineConfig.MonitorDriverConfig;
-    var dotsPermmX = slicingProfile.DotsPermmX;
-    var dotsPermmY = slicingProfile.DotsPermmY;
-    var dotsPermmXYAverage = (dotsPermmX + dotsPermmY) / 2;
+    let slicingProfile = printer.configuration.slicingProfile;
+    let monitorDriverConfig = printer.configuration.machineConfig.MonitorDriverConfig;
+    let dotsPermmX = slicingProfile.DotsPermmX;
+    let dotsPermmY = slicingProfile.DotsPermmY;
+    let dotsPermmXYAverage = (dotsPermmX + dotsPermmY) / 2;
     // Uncomment when not in testing anymore
     // if (Math.abs(dotsPermmX - dotsPermmY) >= 0.1) {
-    // 	return true;
+    //     return true;
     // }
-    var buildVolXmm = Math.round(monitorDriverConfig.DLP_X_Res / dotsPermmXYAverage);
-    var buildVolYmm = Math.round(monitorDriverConfig.DLP_Y_Res / dotsPermmXYAverage);
-    var diagonalMM = Math.round(findPythagoreanC(buildVolXmm, buildVolYmm));
+    let buildVolXmm = Math.round(monitorDriverConfig.DLP_X_Res / dotsPermmXYAverage);
+    let buildVolYmm = Math.round(monitorDriverConfig.DLP_Y_Res / dotsPermmXYAverage);
+    let diagonalMM = Math.round(findPythagoreanC(buildVolXmm, buildVolYmm));
 
     $slicerSpeedYes[0].checked = true;
     $slicerSpeedNo[0].checked = false;
@@ -28,15 +30,15 @@ function setPrinterCalibrationSettings(printer) {
     settings.set('slicer.speed', $slicerSpeedYes[0].checked);
     settings.set('slicer.speedDelay', $slicerSpeedDelay.val());
     settings.set('slicer.layers.height', $slicerLayerHeight.val());
-	
+    
     $buildVolumeX.val(buildVolXmm);
     $buildVolumeY.val(buildVolYmm);
     $buildVolumeZ.val(printer.configuration.machineConfig.PlatformZSize);
     updateBuildVolumeSettings();
-	
-    var unit = settings.get('screen.diagonal.unit');
-    var convert = unit == 'in';
-	
+    
+    let unit = settings.get('screen.diagonal.unit');
+    let convert = unit == 'in';
+    
     $screenDiagonalSize.val(convert ? parseUnit(diagonalMM, unit) : diagonalMM);
     $screenWidth.val(monitorDriverConfig.DLP_X_Res);
     $screenHeight.val(monitorDriverConfig.DLP_Y_Res);
@@ -44,7 +46,7 @@ function setPrinterCalibrationSettings(printer) {
     if (convert) {
         $('#screen-diagonal-unit-in').prop('checked', false);
         $('#screen-diagonal-unit-mm').prop('checked', true);
-        updateScreenSettings();		
+        updateScreenSettings();        
     }
 
     // No error occurred so return false
@@ -58,7 +60,7 @@ function initializeValues() {
     // settings.set('#slicer.panel.collapsed', true);
     // $slicerBody.collapse('hide');
 
-    var XYerr = false;
+    let XYerr = false;
     $.get( '/services/printers/getFirstAvailablePrinter', function( data ) {
         if (data !== null && data !== undefined) {
             XYerr = setPrinterCalibrationSettings(data);
@@ -79,7 +81,7 @@ function makeZip() {
     if (zipFile === null || zipFile === undefined) {
         alert('You must first slice images to generate a zip file.');
     } else {
-        var name = 'SLAcer';
+        let name = 'SLAcer';
         if (loadedFile && loadedFile.name) {
             name = loadedFile.name;
         }
@@ -88,10 +90,10 @@ function makeZip() {
 }
 
 function uploadZip(zipFile, fileName) {
-    var blob = zipFile;
-    form = new FormData();
+    let blob = zipFile;
+    let form = new FormData();
     form.append('file',blob,fileName);
-    request = new XMLHttpRequest();
+    let request = new XMLHttpRequest();
     request.open('POST', '/services/printables/uploadPrintableFile');
     // When the request is successfully sent, alert the user
     request.onreadystatechange = function () {
@@ -106,17 +108,17 @@ function uploadZip(zipFile, fileName) {
 
 function makeButton() {
     //rename original zip button
-    var btn	= document.getElementById('zip-button');
+    let btn    = document.getElementById('zip-button');
     btn.innerHTML = '<span class="glyphicon glyphicon-compressed"></span> ZIP';
-	
+    
     //create new zip button
-    var newbtn = document.createElement('BUTTON');
+    let newbtn = document.createElement('BUTTON');
     $(newbtn).css({
-	   'margin-top' : '10px'
-    });	
+        'margin-top' : '10px'
+    });    
     btn.parentNode.insertBefore(newbtn, btn.nextSibling);
     newbtn.onclick = function () {
-	    makeZip();
+        makeZip();
     };
     newbtn.id = 'new-zip-button';
     newbtn.className = 'btn btn-primary';
@@ -124,7 +126,7 @@ function makeButton() {
     newbtn.innerHTML = '<i class="glyphicon glyphicon-upload" id="uploadzip-icon"></i> Upload ZIP To Photonic3D';
 }
 
-var oldEndSlicing = endSlicing;
+let oldEndSlicing = endSlicing;
 
 endSlicing = function() {
     oldEndSlicing();

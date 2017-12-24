@@ -1,3 +1,5 @@
+/* global THREE */
+
 // namespace
 var MeshesJS = MeshesJS || {};
 
@@ -21,7 +23,7 @@ var MeshesJS = MeshesJS || {};
     };
 
     STLLoader.prototype.addDropListener = function(dropTarget) {
-        var dropTarget = dropTarget || this.dropTarget;
+        dropTarget = dropTarget || this.dropTarget;
         if (dropTarget) {
             var self = this;
             dropTarget.addEventListener('drop'     , function(e) { self.onDrop(e); }     , false);
@@ -31,7 +33,7 @@ var MeshesJS = MeshesJS || {};
     };
 
     STLLoader.prototype.removeDropListener = function(dropTarget) {
-        var dropTarget = dropTarget || this.dropTarget;
+        dropTarget = dropTarget || this.dropTarget;
         if (dropTarget) {
             var self = this;
             dropTarget.removeEventListener('drop'     , function(e) { self.onDrop(e); }     , false);
@@ -40,8 +42,8 @@ var MeshesJS = MeshesJS || {};
         }
     };
 
-    STLLoader.prototype.onGeometry = function(geometry) {};
-    STLLoader.prototype.onError = function(error) {};
+    STLLoader.prototype.onGeometry = function() {};
+    STLLoader.prototype.onError = function() {};
 
     STLLoader.prototype.loadFile = function(file) {
         // self alias
@@ -51,7 +53,7 @@ var MeshesJS = MeshesJS || {};
         var reader = new FileReader();
 
         // on file loaded
-        reader.onloadend = function(event) {
+        reader.onloadend = function() {
             // if error/abort
             if (this.error) {
                 self.onError(this.error);
@@ -102,8 +104,8 @@ var MeshesJS = MeshesJS || {};
         while((result = patternFace.exec(data)) !== null) {
             text = result[0];
 
-            patternNormal = /normal[\s]+([\-+]?[0-9]+\.?[0-9]*([eE][\-+]?[0-9]+)?)+[\s]+([\-+]?[0-9]*\.?[0-9]+([eE][\-+]?[0-9]+)?)+[\s]+([\-+]?[0-9]*\.?[0-9]+([eE][\-+]?[0-9]+)?)+/g;
-            patternVertex = /vertex[\s]+([\-+]?[0-9]+\.?[0-9]*([eE][\-+]?[0-9]+)?)+[\s]+([\-+]?[0-9]*\.?[0-9]+([eE][\-+]?[0-9]+)?)+[\s]+([\-+]?[0-9]*\.?[0-9]+([eE][\-+]?[0-9]+)?)+/g;
+            patternNormal = /normal[\s]+([-+]?[0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?)+[\s]+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)+[\s]+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)+/g;
+            patternVertex = /vertex[\s]+([-+]?[0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?)+[\s]+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)+[\s]+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)+/g;
 
             while((result = patternNormal.exec(text)) !== null) {
                 normal = new THREE.Vector3(
@@ -134,12 +136,12 @@ var MeshesJS = MeshesJS || {};
 
     STLLoader.prototype.loadBinaryData = function(view, faces) {
         if (!( view instanceof DataView)) {
-            var view = new DataView(view);
+            view = new DataView(view);
         }
 
         if (! faces) {
             try {
-                var faces = view.getUint32(80, true);
+                faces = view.getUint32(80, true);
             }
             catch(error) {
                 this.onError(error);
