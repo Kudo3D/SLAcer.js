@@ -11,16 +11,20 @@
   "license": "MIT",
   "private": false,
   "devDependencies": {
+    "concurrently": "^3.5.1",
     "eslint": "^4.14.0",
     "lite-server": "^2.3.0",
+    "nodemon": "^1.14.3",
     "rollup": "^0.53.0",
     "rollup-plugin-sourcemaps": "^0.4.2"
   },
   "scripts": {
     "clean": "rm -rf ./build; rm -rf ./dist",
-    "rollup": "rollup -c rollup-config-lib.js",
-    "serve:hot": "lite-server -c server-config-dev.json",
-    "lint": "eslint ./js"
+    "lint": "eslint ./js",
+    "dist": "rollup -c rollup-config-lib.js",
+    "dist:watch": "nodemon --exec 'yarn run dist && touch app/index.html' --watch src --watch app --ext css,html,js",
+    "serve:dev": "lite-server -c server-config-dev.json",
+    "serve:hot": "concurrently 'yarn run serve:dev' 'yarn run dist:watch'"
   },
   "dependencies": {}
 }
