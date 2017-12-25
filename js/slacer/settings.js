@@ -3,10 +3,10 @@
 // namespace
 var SLAcer = SLAcer || {};
 
-(function() {
+class Settings {
 
     // Constructor
-    function Settings(settings) {
+    constructor(settings) {
         this.settings = {};
         for (var namespace in window.localStorage) {
             this.settings[namespace] = JSON.parse(
@@ -19,27 +19,27 @@ var SLAcer = SLAcer || {};
 
     // -------------------------------------------------------------------------
 
-    Settings.prototype.store = function() {
+    store() {
         for (var namespace in this.settings) {
             window.localStorage.setItem(
                 namespace, JSON.stringify(this.settings[namespace])
             );
         }
-    };
+    }
 
-    Settings.prototype.has = function(path) {
+    has(path) {
         return _.has(this.settings, path);
-    };
+    }
 
-    Settings.prototype.get = function(path, defaultValue) {
+    get(path, defaultValue) {
         if (path) {
             return _.get(this.settings, path, defaultValue);
         }
 
         return this.settings;
-    };
+    }
 
-    Settings.prototype.set = function(path, value, store) {
+    set(path, value, store) {
         store = (store == undefined) ? true : (!!store);
 
         if (typeof path == 'string') {
@@ -57,11 +57,9 @@ var SLAcer = SLAcer || {};
         store && this.store();
 
         return this;
-    };
+    }
+}
 
-    // -------------------------------------------------------------------------
+// export module
+SLAcer.Settings = Settings;
 
-    // export module
-    SLAcer.Settings = Settings;
-
-})();

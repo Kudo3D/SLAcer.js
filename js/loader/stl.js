@@ -3,85 +3,82 @@
 // namespace
 var MeshesJS = MeshesJS || {};
 
-(function() {
+class STLLoader {
 
     // Constructor
-    function STLLoader(dropTarget) {
+    constructor(dropTarget) {
         this.dropTarget = dropTarget || null;
         this.addDropListener();
     }
 
     // methods
-    STLLoader.prototype.onDragLeave = function(e) {
+    onDragLeave (e) {
         e.stopPropagation();
         e.preventDefault();
-    };
+    }
 
-    STLLoader.prototype.onDrop = function(e) {
+    onDrop (e) {
         this.onDragLeave(e);
         this.loadFile((e.target.files || e.dataTransfer.files)[0]);
-    };
+    }
 
-    STLLoader.prototype.addDropListener = function(dropTarget) {
+    addDropListener (dropTarget) {
         dropTarget = dropTarget || this.dropTarget;
         if (dropTarget) {
-            var self = this;
-            dropTarget.addEventListener('drop'     , function(e) { self.onDrop(e); }     , false);
-            dropTarget.addEventListener('dragover' , function(e) { self.onDragLeave(e); }, false);
-            dropTarget.addEventListener('dragleave', function(e) { self.onDragLeave(e); }, false);
+            dropTarget.addEventListener('drop', (e) => { this.onDrop(e); }, false);
+            dropTarget.addEventListener('dragover', (e) => { this.onDragLeave(e); }, false);
+            dropTarget.addEventListener('dragleave', (e) => { this.onDragLeave(e); }, false);
         }
-    };
+    }
 
-    STLLoader.prototype.removeDropListener = function(dropTarget) {
+    removeDropListener (dropTarget) {
         dropTarget = dropTarget || this.dropTarget;
         if (dropTarget) {
-            var self = this;
-            dropTarget.removeEventListener('drop'     , function(e) { self.onDrop(e); }     , false);
-            dropTarget.removeEventListener('dragover' , function(e) { self.onDragLeave(e); }, false);
-            dropTarget.removeEventListener('dragleave', function(e) { self.onDragLeave(e); }, false);
+            dropTarget.removeEventListener('drop', (e) => { this.onDrop(e); }, false);
+            dropTarget.removeEventListener('dragover', (e) => { this.onDragLeave(e); }, false);
+            dropTarget.removeEventListener('dragleave', (e) => { this.onDragLeave(e); }, false);
         }
-    };
+    }
 
-    STLLoader.prototype.onGeometry = function() {};
-    STLLoader.prototype.onError = function() {};
+    onGeometry () { }
+    onError () { }
 
-    STLLoader.prototype.loadFile = function(file) {
-        // self alias
-        var self = this;
+    loadFile (file) {
+        // this alias
 
         // file reader instance
         var reader = new FileReader();
 
         // on file loaded
-        reader.onloadend = function() {
+        reader.onloadend = (e) => {
             // if error/abort
-            if (this.error) {
-                self.onError(this.error);
+            if (e.target.error) {
+                this.onError(e.target.error);
                 return;
             }
 
             // Parse ASCII STL
-            if (typeof this.result === 'string' ) {
-                self.loadString(this.result);
+            if (typeof e.target.result === 'string') {
+                this.loadString(e.target.result);
                 return;
             }
 
             // buffer reader
-            var view = new DataView(this.result);
+            var view = new DataView(e.target.result);
 
             // get faces number
             try {
                 var faces = view.getUint32(80, true);
             }
-            catch(error) {
-                self.onError(error);
+            catch (error) {
+                this.onError(error);
                 return;
             }
 
             // is binary ?
             var binary = view.byteLength == (80 + 4 + 50 * faces);
 
-            if (! binary) {
+            if (!binary) {
                 // get the file contents as string
                 // (faster than convert array buffer)
                 reader.readAsText(file);
@@ -89,25 +86,25 @@ var MeshesJS = MeshesJS || {};
             }
 
             // parse binary STL
-            self.loadBinaryData(view, faces);
+            this.loadBinaryData(view, faces);
         };
 
         // start reading file as array buffer
         reader.readAsArrayBuffer(file);
-    };
+    }
 
-    STLLoader.prototype.loadString = function(data) {
+    loadString (data) {
         var length, normal, patternNormal, patternVertex, result, text;
         var geometry = new THREE.Geometry();
         var patternFace = /facet([\s\S]*?)endfacet/g;
 
-        while((result = patternFace.exec(data)) !== null) {
+        while ((result = patternFace.exec(data)) !== null) {
             text = result[0];
 
             patternNormal = /normal[\s]+([-+]?[0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?)+[\s]+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)+[\s]+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)+/g;
             patternVertex = /vertex[\s]+([-+]?[0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?)+[\s]+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)+[\s]+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)+/g;
 
-            while((result = patternNormal.exec(text)) !== null) {
+            while ((result = patternNormal.exec(text)) !== null) {
                 normal = new THREE.Vector3(
                     parseFloat(result[1]),
                     parseFloat(result[3]),
@@ -115,7 +112,7 @@ var MeshesJS = MeshesJS || {};
                 );
             }
 
-            while((result = patternVertex.exec(text)) !== null) {
+            while ((result = patternVertex.exec(text)) !== null) {
                 geometry.vertices.push(new THREE.Vector3(
                     parseFloat(result[1]),
                     parseFloat(result[3]),
@@ -125,25 +122,25 @@ var MeshesJS = MeshesJS || {};
 
             length = geometry.vertices.length;
 
-            geometry.faces.push(new THREE.Face3(length-3, length-2, length-1, normal));
+            geometry.faces.push(new THREE.Face3(length - 3, length - 2, length - 1, normal));
         }
 
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();
 
         this.onGeometry(geometry);
-    };
+    }
 
-    STLLoader.prototype.loadBinaryData = function(view, faces) {
-        if (!( view instanceof DataView)) {
+    loadBinaryData (view, faces) {
+        if (!(view instanceof DataView)) {
             view = new DataView(view);
         }
 
-        if (! faces) {
+        if (!faces) {
             try {
                 faces = view.getUint32(80, true);
             }
-            catch(error) {
+            catch (error) {
                 this.onError(error);
                 return;
             }
@@ -153,25 +150,25 @@ var MeshesJS = MeshesJS || {};
         var faceLength = 12 * 4 + 2;
         var offset = 0;
         var geometry = new THREE.BufferGeometry();
-        var vertices = new Float32Array( faces * 3 * 3 );
-        var normals = new Float32Array( faces * 3 * 3 );
+        var vertices = new Float32Array(faces * 3 * 3);
+        var normals = new Float32Array(faces * 3 * 3);
 
-        for ( var face = 0; face < faces; face ++ ) {
+        for (var face = 0; face < faces; face++) {
             var start = dataOffset + face * faceLength;
-            var normalX = view.getFloat32( start, true );
-            var normalY = view.getFloat32( start + 4, true );
-            var normalZ = view.getFloat32( start + 8, true );
+            var normalX = view.getFloat32(start, true);
+            var normalY = view.getFloat32(start + 4, true);
+            var normalZ = view.getFloat32(start + 8, true);
 
-            for (var i = 1; i <= 3; i ++) {
+            for (var i = 1; i <= 3; i++) {
                 var vertexstart = start + i * 12;
 
-                normals[ offset ] = normalX;
-                normals[ offset + 1 ] = normalY;
-                normals[ offset + 2 ] = normalZ;
+                normals[offset] = normalX;
+                normals[offset + 1] = normalY;
+                normals[offset + 2] = normalZ;
 
-                vertices[ offset ] = view.getFloat32( vertexstart, true );
-                vertices[ offset + 1 ] = view.getFloat32( vertexstart + 4, true );
-                vertices[ offset + 2 ] = view.getFloat32( vertexstart + 8, true );
+                vertices[offset] = view.getFloat32(vertexstart, true);
+                vertices[offset + 1] = view.getFloat32(vertexstart + 4, true);
+                vertices[offset + 2] = view.getFloat32(vertexstart + 8, true);
 
                 offset += 3;
             }
@@ -181,9 +178,9 @@ var MeshesJS = MeshesJS || {};
         geometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3));
 
         this.onGeometry(geometry);
-    };
+    }
 
-    // export module
-    MeshesJS.STLLoader = STLLoader;
+}
 
-})();
+// export module
+MeshesJS.STLLoader = STLLoader;

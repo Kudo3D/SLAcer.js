@@ -3,134 +3,131 @@
 // namespace
 var SLAcer = SLAcer || {};
 
-(function() {
 
-    // global settings
-    let globalSettings = {
-        size: {
-            width: 600,
-            height: 400
-        },
-        color: 0x000000,
-        antialias: true,
-        target: document.body,
-        camera: {
-            fov: 45,
-            near: 0.1,
-            far: 10000,
-        }
-    };
+// global settings
+let viewerGlobalSettings = {
+    size: {
+        width: 600,
+        height: 400
+    },
+    color: 0x000000,
+    antialias: true,
+    target: document.body,
+    camera: {
+        fov: 45,
+        near: 0.1,
+        far: 10000,
+    }
+};
 
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 
+class Viewer {
     // Constructor
-    function Viewer(settings) {
-        // self alias
-        let self = this;
+    constructor(settings) {
 
         // settings settings
-        self.settings = _.defaultsDeep({}, settings || {}, Viewer.globalSettings);
+        this.settings = _.defaultsDeep({}, settings || {}, Viewer.globalSettings);
 
         // create main objects
-        self.scene    = new THREE.Scene();
-        self.camera   = new THREE.PerspectiveCamera();
-        self.renderer = new THREE.WebGLRenderer({ antialias: self.settings.antialias });
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera();
+        this.renderer = new THREE.WebGLRenderer({ antialias: this.settings.antialias });
 
         // assign camera settings
-        _.assign(self.camera, self.settings.camera);
+        _.assign(this.camera, this.settings.camera);
 
         // set camera orbit around Z axis
-        self.camera.up = new THREE.Vector3(0, 0, 1);
+        this.camera.up = new THREE.Vector3(0, 0, 1);
 
         // set camera position
-        self.camera.position.z = 1000;
+        this.camera.position.z = 1000;
 
         // set default parameters
-        self.setSize(self.settings.size);
-        self.setColor(self.settings.color);
+        this.setSize(this.settings.size);
+        this.setColor(this.settings.color);
 
         // set the target for canvas
-        self.target = self.settings.target;
-        self.canvas = self.renderer.domElement;
-        if (self.target) {
-            while (self.target.firstChild) {
-                self.target.removeChild(self.target.firstChild);
+        this.target = this.settings.target;
+        this.canvas = this.renderer.domElement;
+        if (this.target) {
+            while (this.target.firstChild) {
+                this.target.removeChild(this.target.firstChild);
             }
-            self.target.appendChild(self.canvas);
+            this.target.appendChild(this.canvas);
         }
 
         // render
-        self.render();
+        this.render();
     }
 
     // -------------------------------------------------------------------------
 
-    Viewer.prototype.getSize = function() {
+    getSize () {
         return this.renderer.getSize();
-    };
+    }
 
-    Viewer.prototype.setSize = function(size) {
+    setSize (size) {
         _.defaults(size, this.getSize());
         this.renderer.setSize(size.width, size.height);
         this.camera.aspect = size.width / size.height;
         this.camera.updateProjectionMatrix();
         return size;
-    };
+    }
 
-    Viewer.prototype.setWidth = function(width) {
+    setWidth (width) {
         return this.setSize({ width: width });
-    };
+    }
 
-    Viewer.prototype.setHeight = function(height) {
+    setHeight (height) {
         return this.setSize({ height: height });
-    };
+    }
 
     // -------------------------------------------------------------------------
 
-    Viewer.prototype.getColor = function() {
+    getColor () {
         return this.renderer.getClearColor();
-    };
+    }
 
-    Viewer.prototype.setColor = function(color) {
+    setColor (color) {
         this.renderer.setClearColor(color);
-    };
+    }
 
     // -------------------------------------------------------------------------
 
-    Viewer.prototype.removeObject = function(object) {
+    removeObject (object) {
         object.geometry && object.geometry.dispose();
         object.material && object.material.dispose();
         this.scene.remove(object);
-    };
+    }
 
-    Viewer.prototype.addObject = function(object) {
+    addObject (object) {
         this.scene.add(object);
         return object;
-    };
+    }
 
-    Viewer.prototype.replaceObject = function(oldObject, newObject) {
+    replaceObject (oldObject, newObject) {
         oldObject && this.removeObject(oldObject);
         this.addObject(newObject);
         return newObject;
-    };
+    }
 
     // -------------------------------------------------------------------------
 
-    Viewer.prototype.render = function() {
+    render () {
         this.renderer.render(this.scene, this.camera);
-    };
+    }
 
-    Viewer.prototype.screenshot = function(callback) {
+    screenshot (callback) {
         this.render();
         callback(this.canvas.toDataURL());
-    };
+    }
+}
+// -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
+// global settings
+Viewer.globalSettings = viewerGlobalSettings;
 
-    // global settings
-    Viewer.globalSettings = globalSettings;
+// export module
+SLAcer.Viewer = Viewer;
 
-    // export module
-    SLAcer.Viewer = Viewer;
-
-})();

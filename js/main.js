@@ -183,7 +183,7 @@ function getSlice(layerNumber) {
     viewer3d.render();
 
     // render 2D view
-    viewer2d.screenshot(function (dataURL) {
+    viewer2d.screenshot((dataURL) => {
         sliceImage(dataURL);
 
         if (PNGExport) {
@@ -313,7 +313,7 @@ let viewer2d = new SLAcer.Viewer2D({
     size: settings.get('screen')
 });
 
-$openViewer2D.click(function () {
+$openViewer2D.click(() => {
     if (viewer2dWin == null || viewer2dWin.closed) {
         let screen = settings.get('screen');
         let size = 'width=' + screen.width + ', height=' + screen.height;
@@ -321,10 +321,10 @@ $openViewer2D.click(function () {
 
         viewer2dWin = window.open('viewer2d.html', 'SLAcerViewer2D', size + ', ' + opts);
 
-        $(viewer2dWin).on('beforeunload', function () {
+        $(viewer2dWin).on('beforeunload', () => {
             viewer2dWin = null;
         })
-            .load(function () {
+            .load(() => {
                 getSlice($sliderInput.slider('getValue'));
             });
     }
@@ -338,7 +338,7 @@ $openViewer2D.click(function () {
 // Slider
 let $sliderInput = $('#slider input');
 
-$sliderInput.slider({ reversed: true }).on('change', function (e) {
+$sliderInput.slider({ reversed: true }).on('change', (e) => {
     getSlice(e.value.newValue);
 });
 
@@ -364,7 +364,7 @@ $sidebar.sortable({
     cancel: '.panel-toggle',
     placeholder: 'panel-placeholder', forcePlaceholderSize: true,
     // update panel position
-    stop: function () {
+    stop: () => {
         $sidebar.find('.panel').each(function (i, element) {
             settings.set(_.camelCase(element.id) + '.panel.position', i);
         });
@@ -391,11 +391,11 @@ function initPanel(name) {
     name = _.camelCase(name);
     let $body = $('#' + id + '-body');
 
-    $body.on('hidden.bs.collapse', function () {
+    $body.on('hidden.bs.collapse', () => {
         settings.set(name + '.panel.collapsed', true);
     });
 
-    $body.on('shown.bs.collapse', function () {
+    $body.on('shown.bs.collapse', () => {
         settings.set(name + '.panel.collapsed', false);
     });
 
@@ -416,7 +416,7 @@ let $fileBody = initPanel('file');
 let $fileInput = $fileBody.find('#file-input');
 let loadedFile = null;
 
-$fileInput.on('change', function (e) {
+$fileInput.on('change', (e) => {
     resetTransformValues();
     loadedFile = e.target.files[0];
     loader.loadFile(loadedFile);
@@ -547,7 +547,7 @@ function slice() {
     let time = Date.now();
     let diff = time - expectedSliceInterval;
 
-    !settings.get('slicer.speed') && viewer2dWin && setTimeout(function () {
+    !settings.get('slicer.speed') && viewer2dWin && setTimeout(() => {
         sliceImage('none');
     }, settings.get('slicer.light.on'));
 
@@ -607,7 +607,7 @@ function startSlicing() {
     slicesNumber && slice();
 }
 
-$zipButton.on('click', function () {
+$zipButton.on('click', () => {
     if (zipFile) {
         let name = 'SLAcer';
         if (loadedFile && loadedFile.name) {
@@ -617,7 +617,7 @@ $zipButton.on('click', function () {
     }
 });
 
-$sliceButton.on('click', function () {
+$sliceButton.on('click', () => {
     $sidebar.find('input, button').prop('disabled', true);
     $('.panel-heading button').prop('disabled', false);
     $openViewer2D.prop('disabled', false);
@@ -628,7 +628,7 @@ $sliceButton.on('click', function () {
     startSlicing();
 });
 
-$abortButton.on('click', function () {
+$abortButton.on('click', () => {
     currentSliceNumber = slicesNumber + 1;
     endSlicing();
 });
@@ -782,7 +782,7 @@ updateColorsUI();
 $meshColor.colorpicker({ format: 'hex' });
 $sliceColor.colorpicker({ format: 'hex' });
 
-$meshColor.colorpicker().on('changeColor.colorpicker', function (e) {
+$meshColor.colorpicker().on('changeColor.colorpicker', (e) => {
     if (slicer.mesh && slicer.mesh.material) {
         let hexString = e.color.toHex();
         let hexInteger = hexToDec(hexString);
@@ -792,7 +792,7 @@ $meshColor.colorpicker().on('changeColor.colorpicker', function (e) {
     }
 });
 
-$sliceColor.colorpicker().on('changeColor.colorpicker', function (e) {
+$sliceColor.colorpicker().on('changeColor.colorpicker', (e) => {
     if (shapes && shapes.length) {
         let hexString = e.color.toHex();
         let hexInteger = hexToDec(hexString);
@@ -959,7 +959,7 @@ function updateTransformValues() {
     getSlice($sliderInput.slider('getValue'));
 }
 
-$transformButtons.on('click', function () {
+$transformButtons.on('click', () => {
     let $this = $(this);
     let axis = $this.data('axis');
     let action = $this.data('action');
@@ -1049,7 +1049,7 @@ function ultraMegaDirtyFix() {
 }
 
 // On Geometry loaded
-loader.onGeometry = function (geometry) {
+loader.onGeometry = (geometry) => {
     resetTransformValues();
     loadGeometry(geometry, settings.get('transform.mirror'));
     ultraMegaDirtyFix();
@@ -1076,7 +1076,7 @@ let xmlhttp = new XMLHttpRequest();
 // Get the file contents
 xmlhttp.open('GET', url);
 
-xmlhttp.onreadystatechange = function () {
+xmlhttp.onreadystatechange = () => {
     if (xmlhttp.readyState == XMLHttpRequest.DONE) {
         if (xmlhttp.status == 200) {
             loader.loadString(xmlhttp.responseText);

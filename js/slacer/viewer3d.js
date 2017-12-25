@@ -3,95 +3,87 @@
 // namespace
 var SLAcer = SLAcer || {};
 
-(function() {
+// global settings
+let viewer3dGlobalSettings = {
+    view: 'default',
+    buildVolume: {
+        size: {
+            x: 100, // mm
+            y: 100, // mm
+            z: 100  // mm
+        },
+        color: 0xff0000,
+        opacity: 0.1
+    }
+};
 
-    // global settings
-    var globalSettings = {
-        view: 'default',
-        buildVolume: {
-            size: {
-                x: 100, // mm
-                y: 100, // mm
-                z: 100  // mm
-            },
-            color: 0xff0000,
-            opacity: 0.1
-        }
-    };
-
-    // -------------------------------------------------------------------------
-
+// -------------------------------------------------------------------------
+class Viewer3D extends SLAcer.Viewer {
     // Constructor
-    function Viewer3D(settings) {
-        // self alias
-        var self = this;
+    constructor(settings) {
+        super(settings);
 
-        SLAcer.Viewer.call(self, settings);
-        _.defaultsDeep(self.settings, Viewer3D.globalSettings);
+        _.defaultsDeep(this.settings, Viewer3D.globalSettings);
 
-        self.controls = new THREE.OrbitControls(self.camera, self.canvas);
-        self.controls.addEventListener('change', function() {
-            self.render();
+        this.controls = new THREE.OrbitControls(this.camera, this.canvas);
+        this.controls.addEventListener('change', () => {
+            this.render();
         });
-        self.controls.noKeys = true;
+        this.controls.noKeys = true;
 
-        self.light = new THREE.AmbientLight(0x000000);
-        self.scene.add(self.light);
+        this.light = new THREE.AmbientLight(0x000000);
+        this.scene.add(this.light);
 
-        self.setBuildVolume(self.settings.buildVolume);
+        this.setBuildVolume(this.settings.buildVolume);
 
-        self.view = new SLAcer.ViewControls({
-            target  : self.buildVolumeObject,
-            controls: self.controls,
-            camera  : self.camera,
-            margin  : 10
+        this.view = new SLAcer.ViewControls({
+            target: this.buildVolumeObject,
+            controls: this.controls,
+            camera: this.camera,
+            margin: 10
         });
 
         var lights = [];
-        lights[0]  = new THREE.PointLight(0xffffff, 1, 0);
-        lights[1]  = new THREE.PointLight(0xffffff, 1, 0);
-        lights[2]  = new THREE.PointLight(0xffffff, 1, 0);
+        lights[0] = new THREE.PointLight(0xffffff, 1, 0);
+        lights[1] = new THREE.PointLight(0xffffff, 1, 0);
+        lights[2] = new THREE.PointLight(0xffffff, 1, 0);
 
         lights[0].position.set(0, 2000, 0);
         lights[1].position.set(1000, 2000, 1000);
         lights[2].position.set(-1000, -2000, -1000);
 
-        self.scene.add( lights[0] );
-        self.scene.add( lights[1] );
-        self.scene.add( lights[2] );
+        this.scene.add(lights[0]);
+        this.scene.add(lights[1]);
+        this.scene.add(lights[2]);
 
-        self.setView(this.settings.view);
-        self.render();
+        this.setView(this.settings.view);
+        this.render();
     }
-
-    // extends
-    Viewer3D.prototype = Object.create(SLAcer.Viewer.prototype);
-    Viewer3D.prototype.constructor = Viewer3D;
 
     // -------------------------------------------------------------------------
 
-    Viewer3D.prototype.dropObject = function(object) {
+    dropObject(object) {
         var volume = this.buildVolume.size;
-        var size   = object.geometry.boundingBox.size();
+        var size = object.geometry.boundingBox.size();
         object.position.z = -((volume.z - size.z) / 2);
-    };
+    }
 
-    Viewer3D.prototype.addObject = function(object) {
+    addObject(object) {
         // drop object on build plate
         this.dropObject(object);
 
         // call parent method
         SLAcer.Viewer.prototype.addObject.call(this, object);
-    };
+    }
 
     // -------------------------------------------------------------------------
 
-    Viewer3D.prototype.setBuildVolume = function(settings) {
+    setBuildVolume(settings) {
         this.buildVolume = _.defaultsDeep({}, settings, this.buildVolume);
 
-        var size    = this.buildVolume.size;
-        var unit    = this.buildVolume.unit;
-        var color   = this.buildVolume.color;
+        var size = this.buildVolume.size;
+        var unit = this.buildVolume.unit;
+        var color = this.buildVolume.color;
         var opacity = this.buildVolume.opacity;
 
         if (unit == 'in') { // -> mm
@@ -113,25 +105,25 @@ var SLAcer = SLAcer || {};
         this.buildVolumeObject = buildVolumeObject;
         this.scene.add(this.buildVolumeObject);
 
-        if (! this.buildVolumeBox) {
+        if (!this.buildVolumeBox) {
             this.buildVolumeBox = new THREE.BoxHelper();
             this.buildVolumeBox.material.color.setHex(color);
             this.scene.add(this.buildVolumeBox);
         }
 
         this.buildVolumeBox.update(this.buildVolumeObject);
-    };
+    }
 
-    Viewer3D.prototype.setView = function(view) {
+    setView(view) {
         this.view.set(view !== undefined ? view : this.settings.view);
-    };
+    }
+}
+// -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
+// global settings
+Viewer3D.globalSettings = viewer3dGlobalSettings;
 
-    // global settings
-    Viewer3D.globalSettings = globalSettings;
+// export module
+SLAcer.Viewer3D = Viewer3D;
 
-    // export module
-    SLAcer.Viewer3D = Viewer3D;
 
-})();

@@ -3,194 +3,195 @@
 // namespace
 var SLAcer = SLAcer || {};
 
-(function() {
+// global settings
+let slicerGlobalSettings = {
+    color: 0xffff00
+};
 
-    // global settings
-    let globalSettings = {
-        color: 0xffff00
-    };
+// -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
+function Point(p) {
+    this.x = p.x;
+    this.y = p.y;
+    this.s = p.x + ':' + p.y;
+}
 
-    function Point(p) {
-        this.x = p.x;
-        this.y = p.y;
-        this.s = p.x + ':' + p.y;
-    }
+function Line(p1, p2) {
+    this.p1 = new Point(p1);
+    this.p2 = new Point(p2);
+}
 
-    function Line(p1, p2) {
-        this.p1 = new Point(p1);
-        this.p2 = new Point(p2);
-    }
+function isSameValue(v1, v2) {
+    return Math.abs(v1 - v2) <= Number.EPSILON;
+}
 
-    function isSameValue(v1, v2) {
-        return Math.abs(v1 - v2) <= Number.EPSILON;
-    }
+function isSamePoint(p1, p2) {
+    return isSameValue(p1.x, p2.x) && isSameValue(p1.y, p2.y);
+}
 
-    function isSamePoint(p1, p2) {
-        return isSameValue(p1.x, p2.x) && isSameValue(p1.y, p2.y);
-    }
+function linesToPolygons(lines) {
+    let polygons = [];
+    let polygon = [];
 
-    function linesToPolygons(lines) {
-        let polygons = [];
-        let polygon  = [];
+    let firstLine, lastPoint, i, line;
 
-        let firstLine, lastPoint, i, line;
-
-        function getNextPoint() {
-            let found = false;
-            for (i = 0; i < lines.length; i++) {
-                line = lines[i];
-                if (isSamePoint(lastPoint, line.p1)) {
-                    lines.splice(i, 1);
-                    if (isSamePoint(firstLine.p1, line.p2)) {
-                        //console.log('closed loop');
-                        break;
-                    }
-                    polygon.push(line.p2);
-                    lastPoint = line.p2;
-                    found = true;
+    function getNextPoint() {
+        let found = false;
+        for (i = 0; i < lines.length; i++) {
+            line = lines[i];
+            if (isSamePoint(lastPoint, line.p1)) {
+                lines.splice(i, 1);
+                if (isSamePoint(firstLine.p1, line.p2)) {
+                    //console.log('closed loop');
+                    break;
                 }
-                else if (isSamePoint(lastPoint, line.p2)) {
-                    lines.splice(i, 1);
-                    if (isSamePoint(firstLine.p1, line.p1)) {
-                        //console.log('closed loop');
-                        break;
-                    }
-                    polygon.push(line.p1);
-                    lastPoint = line.p1;
-                    found = true;
-                }
+                polygon.push(line.p2);
+                lastPoint = line.p2;
+                found = true;
             }
-            return found;
+            else if (isSamePoint(lastPoint, line.p2)) {
+                lines.splice(i, 1);
+                if (isSamePoint(firstLine.p1, line.p1)) {
+                    //console.log('closed loop');
+                    break;
+                }
+                polygon.push(line.p1);
+                lastPoint = line.p1;
+                found = true;
+            }
         }
-
-        while (lines.length) {
-            firstLine = lines.shift();
-            lastPoint = firstLine.p2;
-
-            polygon.push(firstLine.p1);
-            polygon.push(firstLine.p2);
-
-            while (getNextPoint());
-
-            polygons.push(polygon);
-            polygon = [];
-        }
-
-        return polygons;
+        return found;
     }
 
-    function pointInPolygon(point, polygon) {
-        // ray-casting algorithm based on
-        // https://github.com/substack/point-in-polygon/blob/master/index.js
-        // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+    while (lines.length) {
+        firstLine = lines.shift();
+        lastPoint = firstLine.p2;
 
-        let inside = false;
+        polygon.push(firstLine.p1);
+        polygon.push(firstLine.p2);
 
-        let i, il, j, pi, pj;
+        while (getNextPoint());
 
-        for (i = 0, il = polygon.length, j = il - 1; i < il; j = i++) {
-            pi = polygon[i];
-            pj = polygon[j];
+        polygons.push(polygon);
+        polygon = [];
+    }
 
-            (((pi.y > point.y) != (pj.y > point.y))
+    return polygons;
+}
+
+function pointInPolygon(point, polygon) {
+    // ray-casting algorithm based on
+    // https://github.com/substack/point-in-polygon/blob/master/index.js
+    // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+
+    let inside = false;
+
+    let i, il, j, pi, pj;
+
+    for (i = 0, il = polygon.length, j = il - 1; i < il; j = i++) {
+        pi = polygon[i];
+        pj = polygon[j];
+
+        (((pi.y > point.y) != (pj.y > point.y))
             && (point.x < (pj.x - pi.x) * (point.y - pi.y) / (pj.y - pi.y) + pi.x))
             && (inside = !inside);
-        }
-
-        return inside;
     }
 
-    function makeNodes(polygons) {
-        // single polygon...
-        if (polygons.length == 1) {
-            return { 0: { parents: [], isHole: false } };
+    return inside;
+}
+
+function makeNodes(polygons) {
+    // single polygon...
+    if (polygons.length == 1) {
+        return { 0: { parents: [], isHole: false } };
+    }
+
+    // nodes collection
+    let nodes = {};
+
+    // variables
+    let i, il, point, y, yl;
+
+    // for each polygon extract parents and childs polygons
+    for (i = 0, il = polygons.length; i < il; i++) {
+        // only check for first point in polygon
+        point = polygons[i][0];
+
+        // not enough faces ( !!! investigation required !!!)
+        if (polygons[i].length < 3) {
+            //console.log('--------------------');
+            //console.log(il, i, polygons[i]);
+            continue;
         }
 
-        // nodes collection
-        let nodes = {};
+        // for each polygons
+        for (y = 0, yl = il; y < yl; y++) {
+            // do not check self intersection
+            if (i == y) continue;
 
-        // variables
-        let i, il, point, y, yl;
+            // create default node
+            nodes[i] || (nodes[i] = { parents: [], isHole: false });
+            nodes[y] || (nodes[y] = { parents: [], isHole: false });
 
-        // for each polygon extract parents and childs polygons
-        for (i = 0, il = polygons.length; i < il; i++) {
-            // only check for first point in polygon
-            point = polygons[i][0];
+            // check if point in poylgon
+            if (pointInPolygon(point, polygons[y])) {
+                // push parent and child
+                nodes[i].parents.push(y);
 
-            // not enough faces ( !!! investigation required !!!)
-            if (polygons[i].length < 3) {
-                //console.log('--------------------');
-                //console.log(il, i, polygons[i]);
-                continue;
+                // odd parents number ==> hole
+                nodes[i].isHole = !!(nodes[i].parents.length % 2);
+                nodes[y].isHole = !!(nodes[y].parents.length % 2);
             }
+        }
+    }
 
-            // for each polygons
-            for (y = 0, yl = il; y < yl; y++) {
-                // do not check self intersection
-                if (i == y) continue;
+    // return nodes collection
+    return nodes;
+}
 
-                // create default node
-                nodes[i] || (nodes[i] = { parents: [], isHole: false });
-                nodes[y] || (nodes[y] = { parents: [], isHole: false });
+function polygonsToShapes(polygons) {
+    // shapes collection
+    let shapes = [];
 
-                // check if point in poylgon
-                if (pointInPolygon(point, polygons[y])) {
-                    // push parent and child
-                    nodes[i].parents.push(y);
+    // make the nodes collection
+    let nodes = makeNodes(polygons);
+    //console.log('nodes:', nodes);
 
-                    // odd parents number ==> hole
-                    nodes[i].isHole = !! (nodes[i].parents.length % 2);
-                    nodes[y].isHole = !! (nodes[y].parents.length % 2);
+    // variables
+    let key, node, i, il, parentKey;
+
+    // make base collection
+    for (key in nodes) {
+        node = nodes[key];
+        if (!node.isHole) {
+            shapes[key] = new THREE.Shape(polygons[key]);
+        }
+    }
+
+    // push holes
+    for (key in nodes) {
+        node = nodes[key];
+        if (node.isHole) {
+            for (i = 0, il = node.parents.length; i < il; i++) {
+                parentKey = node.parents[i];
+                if ((il - 1) == nodes[parentKey].parents.length) {
+                    shapes[parentKey].holes.push(new THREE.Path(polygons[key]));
                 }
             }
         }
-
-        // return nodes collection
-        return nodes;
     }
 
-    function polygonsToShapes(polygons) {
-        // shapes collection
-        let shapes = [];
+    // return shapes collection
+    return shapes;
+}
 
-        // make the nodes collection
-        let nodes = makeNodes(polygons);
-        //console.log('nodes:', nodes);
 
-        // variables
-        let key, node, i, il, parentKey;
-
-        // make base collection
-        for (key in nodes) {
-            node = nodes[key];
-            if (! node.isHole) {
-                shapes[key] = new THREE.Shape(polygons[key]);
-            }
-        }
-
-        // push holes
-        for (key in nodes) {
-            node = nodes[key];
-            if (node.isHole) {
-                for (i = 0, il = node.parents.length; i < il; i++) {
-                    parentKey = node.parents[i];
-                    if ((il - 1) == nodes[parentKey].parents.length) {
-                        shapes[parentKey].holes.push(new THREE.Path(polygons[key]));
-                    }
-                }
-            }
-        }
-
-        // return shapes collection
-        return shapes;
-    }
+class Slicer {
 
     // -------------------------------------------------------------------------
 
     // Constructor
-    function Slicer(settings) {
+    constructor(settings) {
         // settings
         this.settings = _.defaults({}, settings || {}, Slicer.globalSettings);
 
@@ -202,14 +203,14 @@ var SLAcer = SLAcer || {};
         this.zOffset = 0;
 
         // plane
-        this.mesh  = null;
+        this.mesh = null;
         this.plane = null;
         this.slice = null;
     }
 
     // -------------------------------------------------------------------------
 
-    Slicer.prototype.loadMesh = function(mesh) {
+    loadMesh(mesh) {
         // mesh
         this.mesh = mesh;
 
@@ -248,16 +249,16 @@ var SLAcer = SLAcer || {};
                 color: this.settings.color, side: THREE.DoubleSide
             })
         );
-    };
+    }
 
-    Slicer.prototype.getFaces = function(zPosition) {
+    getFaces(zPosition) {
         let time = Date.now();
 
         zPosition += this.zOffset;
 
         let source = this.slice.geometry;
         let geometry = new THREE.Geometry();
-        let plane  = new THREE.Plane(new THREE.Vector3(0, 0, 1), -zPosition);
+        let plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -zPosition);
 
         let i, length, minMax, face, vertices, v1, v2, v3, index, normal;
 
@@ -272,7 +273,7 @@ var SLAcer = SLAcer || {};
             minMax = this.facesMinMax[i];
 
             if (minMax.min <= zPosition && minMax.max >= zPosition) {
-                face     = source.faces[i];
+                face = source.faces[i];
                 vertices = source.vertices;
 
                 v1 = vertices[face.a].clone();
@@ -281,11 +282,11 @@ var SLAcer = SLAcer || {};
 
                 geometry.vertices.push(v1, v2, v3);
 
-                index  = geometry.vertices.length;
+                index = geometry.vertices.length;
                 normal = face.normal.clone();
 
                 geometry.faces.push(new THREE.Face3(
-                    index-3, index-2, index-1, normal
+                    index - 3, index - 2, index - 1, normal
                 ));
 
                 // slice...
@@ -357,7 +358,7 @@ var SLAcer = SLAcer || {};
         }
 
         let polygons = linesToPolygons(lines);
-        let shapes   = polygonsToShapes(polygons);
+        let shapes = polygonsToShapes(polygons);
 
         let meshes = [];
 
@@ -379,30 +380,29 @@ var SLAcer = SLAcer || {};
                     })
                 ));
             }
-            catch(e) {
+            catch (e) {
                 // eslint-disable-next-line no-console
-                console.error(e,shapes[key]);
+                console.error(e, shapes[key]);
             }
         }
 
         // remove empty shapes...
-        shapes = shapes.filter(function(n){ return n != undefined; });
+        shapes = shapes.filter(function (n) { return n != undefined; });
 
         return {
-            time    : Date.now() - time,
+            time: Date.now() - time,
             geometry: geometry,
             polygons: polygons,
-            shapes  : shapes,
-            meshes  : meshes
+            shapes: shapes,
+            meshes: meshes
         };
-    };
 
-    // -------------------------------------------------------------------------
+    }
+}
+// -------------------------------------------------------------------------
 
-    // global settings
-    Slicer.globalSettings = globalSettings;
+// global settings
+Slicer.globalSettings = slicerGlobalSettings;
 
-    // export module
-    SLAcer.Slicer = Slicer;
-
-})();
+// export module
+SLAcer.Slicer = Slicer;
