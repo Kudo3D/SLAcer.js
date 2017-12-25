@@ -10,7 +10,7 @@
       "/js/slacer.js": "./dist/lib/slacer.js",
       "/js/meshes.js": "./dist/lib/meshes.js",
       "/js/main.js": "./src/main.js",
-      "/vendor": "./vendor",
+      "/vendor": "./node_modules",
       "/stl": "./app/stl"
     }
   }

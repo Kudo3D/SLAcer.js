@@ -293,7 +293,7 @@ let viewer3d = new SLAcer.Viewer3D({
 
 // Triangulation algorithm
 //THREE.Triangulation.setTimer(true);
-THREE.Triangulation.setLibrary('earcut');
+// THREE.Triangulation.setLibrary('earcut');
 //THREE.Triangulation.setLibrary('libtess');
 //THREE.Triangulation.setLibrary('poly2tri');
 
@@ -358,18 +358,18 @@ function updateSliderUI() {
 let $sidebar = $('#sidebar');
 // let $panels = $sidebar.find('.panel');
 
-$sidebar.sortable({
-    axis: 'y',
-    handle: '.panel-heading',
-    cancel: '.panel-toggle',
-    placeholder: 'panel-placeholder', forcePlaceholderSize: true,
-    // update panel position
-    stop: () => {
-        $sidebar.find('.panel').each(function (i, element) {
-            settings.set(_.camelCase(element.id) + '.panel.position', i);
-        });
-    }
-});
+// $sidebar.sortable({
+//     axis: 'y',
+//     handle: '.panel-heading',
+//     cancel: '.panel-toggle',
+//     placeholder: 'panel-placeholder', forcePlaceholderSize: true,
+//     // update panel position
+//     stop: () => {
+//         $sidebar.find('.panel').each(function (i, element) {
+//             settings.set(_.camelCase(element.id) + '.panel.position', i);
+//         });
+//     }
+// });
 
 // Sort panels
 let panels = [];
