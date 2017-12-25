@@ -1,7 +1,6 @@
 /* global THREE, _ */
 
-// namespace
-var SLAcer = SLAcer || {};
+import { Mesh } from './mesh';
 
 // global settings
 let slicerGlobalSettings = {
@@ -186,7 +185,7 @@ function polygonsToShapes(polygons) {
 }
 
 
-class Slicer {
+export class Slicer {
 
     // -------------------------------------------------------------------------
 
@@ -243,7 +242,7 @@ class Slicer {
         }
 
         // plane
-        this.plane = new SLAcer.Mesh(
+        this.plane = new Mesh(
             new THREE.PlaneGeometry(size.x, size.y, 1),
             new THREE.MeshBasicMaterial({
                 color: this.settings.color, side: THREE.DoubleSide
@@ -399,10 +398,6 @@ class Slicer {
 
     }
 }
-// -------------------------------------------------------------------------
 
 // global settings
 Slicer.globalSettings = slicerGlobalSettings;
-
-// export module
-SLAcer.Slicer = Slicer;

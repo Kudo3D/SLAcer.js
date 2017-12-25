@@ -1,9 +1,6 @@
 /* global _ */
 
-// namespace
-var SLAcer = SLAcer || {};
-
-class Settings {
+export class Settings {
 
     // Constructor
     constructor(settings) {
@@ -59,7 +56,3 @@ class Settings {
         return this;
     }
 }
-
-// export module
-SLAcer.Settings = Settings;
-

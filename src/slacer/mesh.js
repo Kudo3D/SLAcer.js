@@ -1,9 +1,6 @@
 /* global THREE */
 
-// namespace
-var SLAcer = SLAcer || {};
-
-class Mesh extends THREE.Mesh {
+export class Mesh extends THREE.Mesh {
     // Constructor
     constructor(geometry, material) {
 
@@ -57,10 +54,3 @@ class Mesh extends THREE.Mesh {
         return (this.userData.volume = volume);
     }
 }
-
-// -------------------------------------------------------------------------
-
-// export module
-SLAcer.Mesh = Mesh;
-
-

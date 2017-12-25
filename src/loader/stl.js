@@ -1,9 +1,6 @@
 /* global THREE */
 
-// namespace
-var MeshesJS = MeshesJS || {};
-
-class STLLoader {
+export class STLLoader {
 
     // Constructor
     constructor(dropTarget) {
@@ -181,6 +178,3 @@ class STLLoader {
     }
 
 }
-
-// export module
-MeshesJS.STLLoader = STLLoader;

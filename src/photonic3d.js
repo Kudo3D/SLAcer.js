@@ -96,7 +96,7 @@ function uploadZip(zipFile, fileName) {
     let request = new XMLHttpRequest();
     request.open('POST', '/services/printables/uploadPrintableFile');
     // When the request is successfully sent, alert the user
-    request.onreadystatechange = function () {
+    request.onreadystatechange = () => {
         if (request.readyState == 4 && request.status == 200) {
             // window.open('/printablesPage', '_self');
             $('#uploadzip-icon').prop('class', 'glyphicon glyphicon-upload');
@@ -117,7 +117,7 @@ function makeButton() {
         'margin-top' : '10px'
     });    
     btn.parentNode.insertBefore(newbtn, btn.nextSibling);
-    newbtn.onclick = function () {
+    newbtn.onclick = () => {
         makeZip();
     };
     newbtn.id = 'new-zip-button';

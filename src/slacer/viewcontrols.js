@@ -1,9 +1,5 @@
 /* global THREE, _ */
 
-// namespace
-var SLAcer = SLAcer || {};
-
-
 // global settings
 let viewControlsGlobalSettings = {
     view: 'default',
@@ -13,7 +9,7 @@ let viewControlsGlobalSettings = {
     margin: 10
 };
 
-class ViewControls {
+export class ViewControls {
 
     // Constructor
     constructor(settings) {
@@ -151,6 +147,3 @@ class ViewControls {
 
 // global settings
 ViewControls.globalSettings = viewControlsGlobalSettings;
-
-// export module
-SLAcer.ViewControls = ViewControls;

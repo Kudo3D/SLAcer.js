@@ -1,9 +1,6 @@
 /* global THREE, _ */
 
-// namespace
-var SLAcer = SLAcer || {};
-
-
+import {Viewer} from './viewer';
 
 // global settings
 let viewer2dGlobalSettings = {
@@ -24,7 +21,7 @@ let viewer2dGlobalSettings = {
 };
 
 // -------------------------------------------------------------------------
-class Viewer2D extends SLAcer.Viewer{
+export class Viewer2D extends Viewer{
     // Constructor
     constructor(settings) {
         super(settings);
@@ -101,8 +98,3 @@ class Viewer2D extends SLAcer.Viewer{
 
 // global settings
 Viewer2D.globalSettings = viewer2dGlobalSettings;
-
-// export module
-SLAcer.Viewer2D = Viewer2D;
-
-

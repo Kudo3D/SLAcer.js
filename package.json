@@ -12,10 +12,15 @@
   "private": false,
   "devDependencies": {
     "eslint": "^4.14.0",
-    "lite-server": "^2.3.0"
+    "lite-server": "^2.3.0",
+    "rollup": "^0.53.0",
+    "rollup-plugin-sourcemaps": "^0.4.2"
   },
   "scripts": {
-    "serve:hot": "yarn run lite-server ./server-config-dev.json",
-    "lint": "yarn run eslint ./js"
-  }
+    "clean": "rm -rf ./build; rm -rf ./dist",
+    "rollup": "rollup -c rollup-config-lib.js",
+    "serve:hot": "lite-server -c server-config-dev.json",
+    "lint": "eslint ./js"
+  },
+  "dependencies": {}
 }

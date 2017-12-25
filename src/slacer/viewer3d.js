@@ -1,7 +1,8 @@
 /* global THREE, _ */
 
-// namespace
-var SLAcer = SLAcer || {};
+import {Viewer} from './viewer';
+import {ViewControls} from './viewcontrols';
+import {Mesh} from './mesh';
 
 // global settings
 let viewer3dGlobalSettings = {
@@ -18,7 +19,7 @@ let viewer3dGlobalSettings = {
 };
 
 // -------------------------------------------------------------------------
-class Viewer3D extends SLAcer.Viewer {
+export class Viewer3D extends Viewer {
     // Constructor
     constructor(settings) {
         super(settings);
@@ -36,7 +37,7 @@ class Viewer3D extends SLAcer.Viewer {
 
         this.setBuildVolume(this.settings.buildVolume);
 
-        this.view = new SLAcer.ViewControls({
+        this.view = new ViewControls({
             target: this.buildVolumeObject,
             controls: this.controls,
             camera: this.camera,
@@ -73,7 +74,7 @@ class Viewer3D extends SLAcer.Viewer {
         this.dropObject(object);
 
         // call parent method
-        SLAcer.Viewer.prototype.addObject.call(this, object);
+        super.addObject(object);
     }
 
     // -------------------------------------------------------------------------
@@ -99,7 +100,7 @@ class Viewer3D extends SLAcer.Viewer {
             transparent: true
         });
 
-        var buildVolumeObject = new SLAcer.Mesh(geometry, material);
+        var buildVolumeObject = new Mesh(geometry, material);
 
         this.buildVolumeObject && this.removeObject(this.buildVolumeObject);
         this.buildVolumeObject = buildVolumeObject;
@@ -122,8 +123,3 @@ class Viewer3D extends SLAcer.Viewer {
 
 // global settings
 Viewer3D.globalSettings = viewer3dGlobalSettings;
-
-// export module
-SLAcer.Viewer3D = Viewer3D;
-
-

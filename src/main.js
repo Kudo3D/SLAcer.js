@@ -1,4 +1,4 @@
-/* global SLAcer, THREE, MeshesJS, JSZip, saveAs, _,  $ */
+/* global SLAcer, THREE, MeshesJS, JSZip, saveAs, _, $ */
 
 // -----------------------------------------------------------------------------
 // variables
